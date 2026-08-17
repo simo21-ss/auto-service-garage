@@ -1,0 +1,42 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: garage-app
+
+  datasource:
+    url: jdbc:postgresql://${GARAGE_DB_HOST:localhost}:${GARAGE_DB_PORT:5433}/garage
+    username: ${GARAGE_DB_USER:garage}
+    password: ${GARAGE_DB_PASSWORD:garage}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+garage:
+  parts-service:
+    url: ${PARTS_SERVICE_URL:http://localhost:8081}
+  security:
+    service-token:
+      secret: ${SERVICE_TOKEN_SECRET:0f2b7c1a9d4e6f83b5c07a1e2d9f4c68a3b5d7e91c02f4a6b8d0e2f4a6c8b1d3}
+      issuer: garage-app
+      ttl-seconds: 60
+
+logging:
+  level:
+    bg.softuni.garage: INFO
