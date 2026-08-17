@@ -1,0 +1,66 @@
+services:
+
+  garage-db:
+    image: postgres:16-alpine
+    container_name: garage-db
+    environment:
+      POSTGRES_DB: garage
+      POSTGRES_USER: garage
+      POSTGRES_PASSWORD: garage
+    ports:
+      - "${GARAGE_DB_PORT:-5433}:5432"
+    volumes:
+      - garage-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U garage -d garage"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  parts-db:
+    image: postgres:16-alpine
+    container_name: parts-db
+    environment:
+      POSTGRES_DB: parts
+      POSTGRES_USER: parts
+      POSTGRES_PASSWORD: parts
+    ports:
+      - "${PARTS_DB_PORT:-5434}:5432"
+    volumes:
+      - parts-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parts -d parts"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  cache:
+    image: redis:7-alpine
+    container_name: garage-cache
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ledger-db:
+    image: mongo:7
+    container_name: parts-ledger-db
+    environment:
+      MONGO_INITDB_DATABASE: partsledger
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - ledger-db-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  garage-db-data:
+  parts-db-data:
+  ledger-db-data:
