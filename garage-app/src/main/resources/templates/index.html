@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1 sec:authorize="isAnonymous()">Your car deserves a proper workshop</h1>
+            <h1 sec:authorize="isAuthenticated()"
+                th:text="|Welcome back, ${#authentication.principal.fullName}|">Welcome back</h1>
+            <p>Book a service slot, follow every repair step, and know exactly which parts went in.</p>
+        </div>
+    </div>
+
+    <div class="grid">
+        <section class="card">
+            <h2>Book a service</h2>
+            <p class="hint">Describe the fault, pick your car, and we schedule it with a mechanic
+                whose specialty matches the job.</p>
+        </section>
+        <section class="card">
+            <h2>Follow the repair</h2>
+            <p class="hint">Every repair order lists its service tasks and the labour hours behind
+                them, so the final invoice never surprises you.</p>
+        </section>
+        <section class="card">
+            <h2>Genuine parts</h2>
+            <p class="hint">Parts are reserved from our warehouse the moment a job is approved and
+                only charged once they are actually fitted.</p>
+        </section>
+    </div>
+
+    <div class="card" sec:authorize="isAnonymous()" style="margin-top: 20px;">
+        <h2>New here?</h2>
+        <p class="hint">Create an account to register your vehicles and request your first service.</p>
+        <div class="actions">
+            <a class="btn" th:href="@{/register}">Create an account</a>
+            <a class="btn btn-ghost" th:href="@{/login}">I already have one</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

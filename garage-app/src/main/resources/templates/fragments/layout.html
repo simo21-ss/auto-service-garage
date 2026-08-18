@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${title} · Pistonworks Garage|">Pistonworks Garage</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+<header class="site-header" th:fragment="header">
+    <div class="bar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">&#9881;</span>
+            <span>Pistonworks Garage</span>
+        </a>
+
+        <nav class="site-nav">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/about}">About</a>
+
+            <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/users}">Users</a>
+
+            <a sec:authorize="isAnonymous()" th:href="@{/login}">Sign in</a>
+            <a sec:authorize="isAnonymous()" th:href="@{/register}">Register</a>
+
+            <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+            <span sec:authorize="isAuthenticated()" class="who" sec:authentication="name">user</span>
+            <form sec:authorize="isAuthenticated()" class="inline-form"
+                  th:action="@{/logout}" method="post">
+                <button type="submit" class="linkish">Sign out</button>
+            </form>
+        </nav>
+    </div>
+</header>
+
+<div th:fragment="alerts">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+</div>
+
+<footer class="site-footer" th:fragment="footer">
+    <div class="bar">
+        <span>Pistonworks Garage &mdash; service bookings, repair tracking and parts logistics.</span>
+        <span>Sofia, Bulgaria</span>
+    </div>
+</footer>
+
+</body>
+</html>
