@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('User management')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>User management</h1>
+            <p>Grant staff roles and suspend accounts. Each role carries its own permission set.</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Change role</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${users}">
+                    <td>
+                        <strong th:text="${user.username}">username</strong><br>
+                        <span class="hint" th:text="|${user.firstName} ${user.lastName}|">name</span>
+                    </td>
+                    <td th:text="${user.email}">email</td>
+                    <td>
+                        <span class="tag"
+                              th:classappend="'tag-' + ${#strings.toLowerCase(user.role.name)}"
+                              th:text="${user.role.name}">ROLE</span>
+                    </td>
+                    <td>
+                        <span class="tag" th:classappend="${user.active} ? 'tag-on' : 'tag-off'"
+                              th:text="${user.active} ? 'ACTIVE' : 'SUSPENDED'">status</span>
+                    </td>
+                    <td>
+                        <form class="row-form" method="post"
+                              th:action="@{/admin/users/{id}/role(id=${user.id})}">
+                            <input type="hidden" name="_method" value="put">
+                            <select name="role">
+                                <option th:each="role : ${roles}"
+                                        th:value="${role}"
+                                        th:text="${role}"
+                                        th:selected="${role == user.role.name}">ROLE</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm">Apply</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form class="inline-form" method="post"
+                              th:action="@{/admin/users/{id}/status(id=${user.id})}">
+                            <input type="hidden" name="_method" value="put">
+                            <input type="hidden" name="active" th:value="${!user.active}">
+                            <button type="submit" class="btn btn-sm"
+                                    th:classappend="${user.active} ? 'btn-danger' : 'btn-ghost'"
+                                    th:text="${user.active} ? 'Suspend' : 'Activate'">toggle</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
