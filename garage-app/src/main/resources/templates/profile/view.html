@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My profile')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>My profile</h1>
+            <p>Your contact details as they appear on repair orders and invoices.</p>
+        </div>
+        <a class="btn" th:href="@{/profile/edit}">Edit profile</a>
+    </div>
+
+    <section class="card">
+        <dl class="dl">
+            <dt>Username</dt>
+            <dd th:text="${user.username}">username</dd>
+
+            <dt>Full name</dt>
+            <dd th:text="|${user.firstName} ${user.lastName}|">name</dd>
+
+            <dt>Email</dt>
+            <dd th:text="${user.email}">email</dd>
+
+            <dt>Phone</dt>
+            <dd th:text="${#strings.isEmpty(user.phone)} ? 'Not provided' : ${user.phone}">phone</dd>
+
+            <dt>Role</dt>
+            <dd>
+                <span class="tag"
+                      th:classappend="'tag-' + ${#strings.toLowerCase(user.role.name)}"
+                      th:text="${user.role.name}">ROLE</span>
+            </dd>
+
+            <dt>Permissions</dt>
+            <dd>
+                <span class="tag" style="margin-right: 6px;"
+                      th:each="permission : ${user.role.permissions}"
+                      th:text="${permission.name}">PERMISSION</span>
+            </dd>
+
+            <dt>Member since</dt>
+            <dd th:text="${#temporals.format(user.createdAt, 'dd MMM yyyy')}">date</dd>
+        </dl>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
