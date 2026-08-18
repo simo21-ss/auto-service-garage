@@ -5,6 +5,11 @@ spring:
   application:
     name: garage-app
 
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
   datasource:
     url: jdbc:postgresql://${GARAGE_DB_HOST:localhost}:${GARAGE_DB_PORT:5433}/garage
     username: ${GARAGE_DB_USER:garage}
