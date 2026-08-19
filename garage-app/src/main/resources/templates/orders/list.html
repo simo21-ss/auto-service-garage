@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My repair orders')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>My repair orders</h1>
+            <p>Every job we have opened for your vehicles, newest first.</p>
+        </div>
+        <a class="btn" th:href="@{/orders/new}">Book a service</a>
+    </div>
+
+    <section class="card">
+        <div class="empty" th:if="${#lists.isEmpty(orders)}">
+            You have no repair orders yet.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(orders)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Vehicle</th>
+                    <th>Work</th>
+                    <th>Status</th>
+                    <th>Scheduled</th>
+                    <th class="money">Total</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}">
+                    <td><strong th:text="${order.reference}">RO</strong></td>
+                    <td th:text="${order.vehicle.plate}">plate</td>
+                    <td th:text="${order.requiredSpecialty}">specialty</td>
+                    <td>
+                        <span class="tag"
+                              th:classappend="'tag-' + ${#strings.toLowerCase(order.status)}"
+                              th:text="${#strings.replace(order.status, '_', ' ')}">status</span>
+                    </td>
+                    <td th:text="${order.scheduledAt != null}
+                                 ? ${#temporals.format(order.scheduledAt, 'dd MMM, HH:mm')}
+                                 : 'Awaiting slot'">slot</td>
+                    <td class="money"
+                        th:text="${#numbers.formatDecimal(order.labourCost.add(order.partsCost), 1, 2)} + ' BGN'">0.00</td>
+                    <td>
+                        <div class="cell-actions">
+                            <a class="btn btn-ghost btn-sm" th:href="@{/orders/{id}(id=${order.id})}">Details</a>
+                            <form class="inline-form" method="post"
+                                  th:if="${order.status.name() == 'REQUESTED' or order.status.name() == 'SCHEDULED'}"
+                                  th:action="@{/orders/{id}/cancel(id=${order.id})}">
+                                <input type="hidden" name="_method" value="put">
+                                <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package bg.softuni.garage.repairorder;
 
 import bg.softuni.garage.mechanic.Mechanic;
+import bg.softuni.garage.mechanic.Specialty;
 import bg.softuni.garage.vehicle.Vehicle;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,11 @@ public class RepairOrder {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private RepairOrderStatus status;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "required_specialty", nullable = false, length = 20)
+    private Specialty requiredSpecialty;
 
     @NotNull
     @Column(name = "created_at", nullable = false)

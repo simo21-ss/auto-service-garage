@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Repair order')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1 th:text="${order.reference}">RO</h1>
+            <p th:text="|${order.vehicle.make} ${order.vehicle.model} · ${order.vehicle.plate}|">vehicle</p>
+        </div>
+        <span class="tag" th:classappend="'tag-' + ${#strings.toLowerCase(order.status)}"
+              th:text="${#strings.replace(order.status, '_', ' ')}">status</span>
+    </div>
+
+    <div class="split">
+        <div>
+            <section class="card">
+                <h2 class="section-title">Reported problem</h2>
+                <p th:text="${order.complaint}">complaint</p>
+
+                <h2 class="section-title">Service tasks</h2>
+                <div class="empty" th:if="${#lists.isEmpty(tasks)}">
+                    No work has been logged on this order yet.
+                </div>
+
+                <div class="table-wrap" th:unless="${#lists.isEmpty(tasks)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Operation</th>
+                            <th>Hours</th>
+                            <th class="money">Rate</th>
+                            <th class="money">Line total</th>
+                            <th>Status</th>
+                            <th th:if="${staffView}"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="task : ${tasks}">
+                            <td th:text="${task.operation}">operation</td>
+                            <td th:text="${#numbers.formatDecimal(task.hours, 1, 2)}">0.00</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(task.hourlyRate, 1, 2)}">0.00</td>
+                            <td class="money"
+                                th:text="${#numbers.formatDecimal(task.hours.multiply(task.hourlyRate), 1, 2)}">0.00</td>
+                            <td>
+                                <span class="tag" th:classappend="'tag-' + ${#strings.toLowerCase(task.status)}"
+                                      th:text="${task.status}">status</span>
+                            </td>
+                            <td th:if="${staffView}">
+                                <div class="cell-actions">
+                                    <form class="inline-form" method="post"
+                                          th:if="${task.status.name() == 'PENDING'}"
+                                          th:action="@{/orders/{id}/tasks/{taskId}/complete(id=${order.id},taskId=${task.id})}">
+                                        <input type="hidden" name="_method" value="put">
+                                        <button type="submit" class="btn btn-sm">Done</button>
+                                    </form>
+                                    <form class="inline-form" method="post"
+                                          th:if="${task.status.name() == 'PENDING'}"
+                                          th:action="@{/orders/{id}/tasks/{taskId}(id=${order.id},taskId=${task.id})}">
+                                        <input type="hidden" name="_method" value="delete">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="section-title">Costs</h2>
+                <div class="table-wrap">
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td>Labour</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(order.labourCost, 1, 2)} + ' BGN'">0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Parts</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(order.partsCost, 1, 2)} + ' BGN'">0.00</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Total</td>
+                            <td class="money"
+                                th:text="${#numbers.formatDecimal(order.labourCost.add(order.partsCost), 1, 2)} + ' BGN'">0.00</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div>
+            <section class="card">
+                <h2 class="section-title">Job card</h2>
+                <dl class="dl" style="grid-template-columns: 1fr;">
+                    <dt>Required specialty</dt>
+                    <dd th:text="${order.requiredSpecialty}">specialty</dd>
+
+                    <dt>Mechanic</dt>
+                    <dd th:text="${order.mechanic != null} ? ${order.mechanic.fullName} : 'Not assigned yet'">mechanic</dd>
+
+                    <dt>Booked</dt>
+                    <dd th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}">date</dd>
+
+                    <dt>Scheduled</dt>
+                    <dd th:text="${order.scheduledAt != null}
+                                 ? ${#temporals.format(order.scheduledAt, 'dd MMM yyyy, HH:mm')}
+                                 : 'Awaiting slot'">slot</dd>
+
+                    <dt th:if="${order.completedAt != null}">Completed</dt>
+                    <dd th:if="${order.completedAt != null}"
+                        th:text="${#temporals.format(order.completedAt, 'dd MMM yyyy, HH:mm')}">done</dd>
+                </dl>
+
+                <div class="actions"
+                     th:if="${!staffView and (order.status.name() == 'REQUESTED' or order.status.name() == 'SCHEDULED')}">
+                    <form class="inline-form" method="post" th:action="@{/orders/{id}/cancel(id=${order.id})}">
+                        <input type="hidden" name="_method" value="put">
+                        <button type="submit" class="btn btn-danger">Cancel this order</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="card" th:if="${staffView and (order.status.name() == 'REQUESTED' or order.status.name() == 'SCHEDULED')}">
+                <h2 class="section-title">Assign a mechanic</h2>
+                <form method="post" th:action="@{/orders/{id}/assign(id=${order.id})}">
+                    <input type="hidden" name="_method" value="put">
+                    <div class="field">
+                        <label for="mechanicId">Mechanic</label>
+                        <select id="mechanicId" name="mechanicId">
+                            <option value="">Choose a mechanic</option>
+                            <option th:each="mechanic : ${mechanics}"
+                                    th:value="${mechanic.id}"
+                                    th:text="|${mechanic.fullName} — ${mechanic.specialty}|">mechanic</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="scheduledAt">Slot</label>
+                        <input type="datetime-local" id="scheduledAt" name="scheduledAt">
+                    </div>
+                    <button type="submit" class="btn">Assign</button>
+                </form>
+            </section>
+
+            <section class="card" th:if="${staffView and (order.status.name() == 'SCHEDULED' or order.status.name() == 'IN_PROGRESS')}">
+                <h2 class="section-title">Log a service task</h2>
+                <form method="post" th:action="@{/orders/{id}/tasks(id=${order.id})}">
+                    <div class="field">
+                        <label for="operation">Operation</label>
+                        <input type="text" id="operation" name="operation" placeholder="Replace front brake discs">
+                    </div>
+                    <div class="field">
+                        <label for="hours">Hours</label>
+                        <input type="number" id="hours" name="hours" step="0.25" min="0.25" max="40" value="1.00">
+                    </div>
+                    <button type="submit" class="btn">Add task</button>
+                </form>
+            </section>
+
+            <section class="card" th:if="${staffView and order.status.name() == 'IN_PROGRESS'}">
+                <h2 class="section-title">Finish the job</h2>
+                <p class="hint">All tasks must be marked done before the order can be completed.</p>
+                <form method="post" th:action="@{/orders/{id}/complete(id=${order.id})}">
+                    <input type="hidden" name="_method" value="put">
+                    <button type="submit" class="btn">Complete repair order</button>
+                </form>
+            </section>
+
+            <section class="card" th:if="${staffView and order.status.name() != 'COMPLETED' and order.status.name() != 'CANCELLED'}">
+                <form method="post" th:action="@{/orders/{id}/cancel(id=${order.id})}">
+                    <input type="hidden" name="_method" value="put">
+                    <button type="submit" class="btn btn-danger">Cancel this order</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Book a service')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <section class="card card-narrow">
+        <h1>Book a service</h1>
+        <p class="hint">Tell us what the car is doing and we will match it to the right mechanic.</p>
+
+        <div class="alert alert-error" th:if="${#lists.isEmpty(vehicles)}">
+            You need an active vehicle before you can book.
+            <a th:href="@{/vehicles/new}">Register one first.</a>
+        </div>
+
+        <form th:action="@{/orders}" th:object="${repairOrderRequest}" method="post"
+              th:unless="${#lists.isEmpty(vehicles)}">
+            <div class="field">
+                <label for="vehicleId">Vehicle</label>
+                <select id="vehicleId" th:field="*{vehicleId}"
+                        th:classappend="${#fields.hasErrors('vehicleId')} ? 'invalid'">
+                    <option value="">Choose a vehicle</option>
+                    <option th:each="vehicle : ${vehicles}"
+                            th:value="${vehicle.id}"
+                            th:text="|${vehicle.plate} — ${vehicle.make} ${vehicle.model}|">vehicle</option>
+                </select>
+                <span class="error" th:if="${#fields.hasErrors('vehicleId')}" th:errors="*{vehicleId}">error</span>
+            </div>
+            <div class="field">
+                <label for="requiredSpecialty">Type of work</label>
+                <select id="requiredSpecialty" th:field="*{requiredSpecialty}"
+                        th:classappend="${#fields.hasErrors('requiredSpecialty')} ? 'invalid'">
+                    <option value="">Choose the area</option>
+                    <option th:each="specialty : ${specialties}"
+                            th:value="${specialty}" th:text="${specialty}">specialty</option>
+                </select>
+                <span class="error" th:if="${#fields.hasErrors('requiredSpecialty')}"
+                      th:errors="*{requiredSpecialty}">error</span>
+            </div>
+            <div class="field">
+                <label for="complaint">What is wrong?</label>
+                <textarea id="complaint" rows="5" th:field="*{complaint}"
+                          placeholder="Grinding noise from the front left wheel when braking below 30 km/h."
+                          th:classappend="${#fields.hasErrors('complaint')} ? 'invalid'"></textarea>
+                <span class="error" th:if="${#fields.hasErrors('complaint')}" th:errors="*{complaint}">error</span>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn">Book the service</button>
+                <a class="btn btn-ghost" th:href="@{/orders}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
