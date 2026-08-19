@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mechanics')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>Mechanics</h1>
+            <p>The workshop team. A job can only be assigned to a mechanic whose specialty matches it.</p>
+        </div>
+        <a class="btn" th:href="@{/admin/mechanics/new}">Add a mechanic</a>
+    </div>
+
+    <section class="card">
+        <div class="empty" th:if="${#lists.isEmpty(mechanics)}">
+            No mechanics have been added yet.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(mechanics)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Specialty</th>
+                    <th class="money">Hourly rate</th>
+                    <th>Hired</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="mechanic : ${mechanics}">
+                    <td><strong th:text="${mechanic.fullName}">name</strong></td>
+                    <td th:text="${mechanic.specialty}">specialty</td>
+                    <td class="money" th:text="${#numbers.formatDecimal(mechanic.hourlyRate, 1, 2)} + ' BGN'">0.00</td>
+                    <td th:text="${#temporals.format(mechanic.hiredOn, 'dd MMM yyyy')}">date</td>
+                    <td>
+                        <span class="tag" th:classappend="${mechanic.active} ? 'tag-on' : 'tag-off'"
+                              th:text="${mechanic.active} ? 'AVAILABLE' : 'INACTIVE'">status</span>
+                    </td>
+                    <td>
+                        <div class="cell-actions">
+                            <a class="btn btn-ghost btn-sm"
+                               th:href="@{/admin/mechanics/{id}/edit(id=${mechanic.id})}">Edit</a>
+                            <form class="inline-form" method="post"
+                                  th:action="@{/admin/mechanics/{id}(id=${mechanic.id})}">
+                                <input type="hidden" name="_method" value="delete">
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

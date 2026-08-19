@@ -1,6 +1,7 @@
 package bg.softuni.garage.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.ui.Model;
@@ -54,6 +55,14 @@ public class GlobalExceptionHandler {
         log.warn("Submitted form failed validation with {} error(s)", exception.getErrorCount());
         return renderError(model, HttpStatus.BAD_REQUEST,
                 "The submitted form contains invalid values.");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleDataIntegrityViolation(DataIntegrityViolationException exception, Model model) {
+        log.warn("Rejected an operation that would break data integrity: {}", exception.getMessage());
+        return renderError(model, HttpStatus.CONFLICT,
+                "That record is still referenced elsewhere and cannot be changed this way.");
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

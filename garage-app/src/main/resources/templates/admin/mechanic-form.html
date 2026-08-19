@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mechanic details')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <section class="card card-narrow">
+        <h1 th:text="${editing} ? 'Edit mechanic' : 'Add a mechanic'">Mechanic</h1>
+        <p class="hint">The hourly rate is copied onto every service task the mechanic logs.</p>
+
+        <form method="post"
+              th:object="${mechanicRequest}"
+              th:action="${editing} ? @{/admin/mechanics/{id}(id=${mechanicId})} : @{/admin/mechanics}">
+            <input type="hidden" name="_method" value="put" th:if="${editing}">
+
+            <div class="field">
+                <label for="fullName">Full name</label>
+                <input type="text" id="fullName" th:field="*{fullName}"
+                       th:classappend="${#fields.hasErrors('fullName')} ? 'invalid'">
+                <span class="error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">error</span>
+            </div>
+            <div class="field">
+                <label for="specialty">Specialty</label>
+                <select id="specialty" th:field="*{specialty}"
+                        th:classappend="${#fields.hasErrors('specialty')} ? 'invalid'">
+                    <option value="">Choose a specialty</option>
+                    <option th:each="option : ${specialties}"
+                            th:value="${option}" th:text="${option}">specialty</option>
+                </select>
+                <span class="error" th:if="${#fields.hasErrors('specialty')}" th:errors="*{specialty}">error</span>
+            </div>
+            <div class="form-inline-grid">
+                <div class="field">
+                    <label for="hourlyRate">Hourly rate (BGN)</label>
+                    <input type="number" id="hourlyRate" step="0.01" min="10" max="500"
+                           th:field="*{hourlyRate}"
+                           th:classappend="${#fields.hasErrors('hourlyRate')} ? 'invalid'">
+                    <span class="error" th:if="${#fields.hasErrors('hourlyRate')}"
+                          th:errors="*{hourlyRate}">error</span>
+                </div>
+                <div class="field">
+                    <label for="hiredOn">Hired on</label>
+                    <input type="date" id="hiredOn" th:field="*{hiredOn}"
+                           th:classappend="${#fields.hasErrors('hiredOn')} ? 'invalid'">
+                    <span class="error" th:if="${#fields.hasErrors('hiredOn')}" th:errors="*{hiredOn}">error</span>
+                </div>
+            </div>
+            <div class="field" style="margin-top: 16px;">
+                <label for="active">
+                    <input type="checkbox" id="active" th:field="*{active}" style="width: auto;">
+                    Available for new jobs
+                </label>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn" th:text="${editing} ? 'Save changes' : 'Add mechanic'">Save</button>
+                <a class="btn btn-ghost" th:href="@{/admin/mechanics}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
