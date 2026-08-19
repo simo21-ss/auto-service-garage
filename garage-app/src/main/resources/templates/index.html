@@ -18,6 +18,21 @@
     </div>
 
     <div class="grid">
+        <section class="card stat">
+            <div class="label">Jobs on the floor</div>
+            <div class="value" th:text="${openOrders}">0</div>
+        </section>
+        <section class="card stat">
+            <div class="label">Repairs completed</div>
+            <div class="value" th:text="${completedOrders}">0</div>
+        </section>
+        <section class="card stat">
+            <div class="label">Mechanics available</div>
+            <div class="value" th:text="${availableMechanics}">0</div>
+        </section>
+    </div>
+
+    <div class="grid" style="margin-top: 20px;">
         <section class="card">
             <h2>Book a service</h2>
             <p class="hint">Describe the fault, pick your car, and we schedule it with a mechanic
@@ -33,6 +48,23 @@
             <p class="hint">Parts are reserved from our warehouse the moment a job is approved and
                 only charged once they are actually fitted.</p>
         </section>
+    </div>
+
+    <div class="card" sec:authorize="hasAuthority('ORDER_BOOK')" style="margin-top: 20px;">
+        <h2>Ready when you are</h2>
+        <p class="hint">Register your car once, then book it in whenever something needs attention.</p>
+        <div class="actions">
+            <a class="btn" th:href="@{/orders/new}">Book a service</a>
+            <a class="btn btn-ghost" th:href="@{/vehicles}">My vehicles</a>
+        </div>
+    </div>
+
+    <div class="card" sec:authorize="hasAnyRole('MECHANIC','ADMIN')" style="margin-top: 20px;">
+        <h2>Workshop floor</h2>
+        <p class="hint">Assign mechanics, log service tasks and close jobs from the workshop board.</p>
+        <div class="actions">
+            <a class="btn" th:href="@{/workshop}">Open the board</a>
+        </div>
     </div>
 
     <div class="card" sec:authorize="isAnonymous()" style="margin-top: 20px;">

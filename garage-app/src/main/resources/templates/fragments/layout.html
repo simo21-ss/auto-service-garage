@@ -22,6 +22,10 @@
             <a th:href="@{/}">Home</a>
             <a th:href="@{/about}">About</a>
 
+            <a sec:authorize="hasAuthority('VEHICLE_MANAGE')" th:href="@{/vehicles}">Vehicles</a>
+            <a sec:authorize="hasAuthority('ORDER_BOOK')" th:href="@{/orders}">My orders</a>
+            <a sec:authorize="hasAnyRole('MECHANIC','ADMIN')" th:href="@{/workshop}">Workshop</a>
+            <a sec:authorize="hasAuthority('MECHANIC_MANAGE')" th:href="@{/admin/mechanics}">Mechanics</a>
             <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/users}">Users</a>
 
             <a sec:authorize="isAnonymous()" th:href="@{/login}">Sign in</a>
