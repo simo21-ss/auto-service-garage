@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Vehicle details')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <section class="card card-narrow">
+        <h1 th:text="${editing} ? 'Edit vehicle' : 'Register a vehicle'">Vehicle</h1>
+        <p class="hint">We use the VIN to order the right parts for your car.</p>
+
+        <form method="post"
+              th:object="${vehicleRequest}"
+              th:action="${editing} ? @{/vehicles/{id}(id=${vehicleId})} : @{/vehicles}">
+            <input type="hidden" name="_method" value="put" th:if="${editing}">
+
+            <div class="field">
+                <label for="plate">Registration plate</label>
+                <input type="text" id="plate" th:field="*{plate}" placeholder="CB 1234 AB"
+                       th:classappend="${#fields.hasErrors('plate')} ? 'invalid'">
+                <span class="error" th:if="${#fields.hasErrors('plate')}" th:errors="*{plate}">error</span>
+            </div>
+            <div class="field">
+                <label for="vin">VIN</label>
+                <input type="text" id="vin" th:field="*{vin}" placeholder="WVWZZZ1JZXW000001"
+                       th:classappend="${#fields.hasErrors('vin')} ? 'invalid'">
+                <span class="error" th:if="${#fields.hasErrors('vin')}" th:errors="*{vin}">error</span>
+            </div>
+            <div class="form-inline-grid">
+                <div class="field">
+                    <label for="make">Make</label>
+                    <input type="text" id="make" th:field="*{make}" placeholder="Volkswagen"
+                           th:classappend="${#fields.hasErrors('make')} ? 'invalid'">
+                    <span class="error" th:if="${#fields.hasErrors('make')}" th:errors="*{make}">error</span>
+                </div>
+                <div class="field">
+                    <label for="model">Model</label>
+                    <input type="text" id="model" th:field="*{model}" placeholder="Golf"
+                           th:classappend="${#fields.hasErrors('model')} ? 'invalid'">
+                    <span class="error" th:if="${#fields.hasErrors('model')}" th:errors="*{model}">error</span>
+                </div>
+            </div>
+            <div class="form-inline-grid" style="margin-top: 16px;">
+                <div class="field">
+                    <label for="modelYear">Model year</label>
+                    <input type="number" id="modelYear" th:field="*{modelYear}" min="1950" max="2100"
+                           th:classappend="${#fields.hasErrors('modelYear')} ? 'invalid'">
+                    <span class="error" th:if="${#fields.hasErrors('modelYear')}" th:errors="*{modelYear}">error</span>
+                </div>
+                <div class="field">
+                    <label for="mileage">Mileage (km)</label>
+                    <input type="number" id="mileage" th:field="*{mileage}" min="0" max="2000000"
+                           th:classappend="${#fields.hasErrors('mileage')} ? 'invalid'">
+                    <span class="error" th:if="${#fields.hasErrors('mileage')}" th:errors="*{mileage}">error</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn" th:text="${editing} ? 'Save changes' : 'Register'">Save</button>
+                <a class="btn btn-ghost" th:href="@{/vehicles}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

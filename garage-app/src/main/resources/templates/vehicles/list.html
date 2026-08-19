@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My vehicles')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>My vehicles</h1>
+            <p>Cars registered to your account. Retired cars stay in your history but cannot be booked in.</p>
+        </div>
+        <a class="btn" th:href="@{/vehicles/new}">Register a vehicle</a>
+    </div>
+
+    <section class="card">
+        <div class="empty" th:if="${#lists.isEmpty(vehicles)}">
+            You have not registered a vehicle yet.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(vehicles)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Plate</th>
+                    <th>Vehicle</th>
+                    <th>Year</th>
+                    <th>Mileage</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="vehicle : ${vehicles}">
+                    <td><strong th:text="${vehicle.plate}">PLATE</strong></td>
+                    <td>
+                        <span th:text="|${vehicle.make} ${vehicle.model}|">make model</span><br>
+                        <span class="hint" th:text="${vehicle.vin}">vin</span>
+                    </td>
+                    <td th:text="${vehicle.modelYear}">year</td>
+                    <td class="money" th:text="${#numbers.formatInteger(vehicle.mileage, 1, 'DEFAULT')} + ' km'">km</td>
+                    <td>
+                        <span class="tag" th:classappend="${vehicle.active} ? 'tag-on' : 'tag-off'"
+                              th:text="${vehicle.active} ? 'IN SERVICE' : 'RETIRED'">status</span>
+                    </td>
+                    <td>
+                        <div class="cell-actions">
+                            <a class="btn btn-ghost btn-sm" th:href="@{/vehicles/{id}/edit(id=${vehicle.id})}">Edit</a>
+
+                            <form class="inline-form" method="post"
+                                  th:action="@{/vehicles/{id}/status(id=${vehicle.id})}">
+                                <input type="hidden" name="_method" value="put">
+                                <input type="hidden" name="active" th:value="${!vehicle.active}">
+                                <button type="submit" class="btn btn-ghost btn-sm"
+                                        th:text="${vehicle.active} ? 'Retire' : 'Reactivate'">toggle</button>
+                            </form>
+
+                            <form class="inline-form" method="post"
+                                  th:action="@{/vehicles/{id}(id=${vehicle.id})}">
+                                <input type="hidden" name="_method" value="delete">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

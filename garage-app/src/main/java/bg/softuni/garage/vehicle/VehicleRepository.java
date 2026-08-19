@@ -13,4 +13,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
     List<Vehicle> findAllByOwnerAndActiveTrueOrderByPlateAsc(User owner);
 
     boolean existsByPlateIgnoreCase(String plate);
+
+    long countByOwner(User owner);
 }
