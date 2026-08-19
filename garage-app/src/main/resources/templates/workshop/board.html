@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Workshop board')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>Workshop board</h1>
+            <p>Every job currently on the floor, oldest request first.</p>
+        </div>
+    </div>
+
+    <div class="grid">
+        <section class="card stat">
+            <div class="label">Awaiting assignment</div>
+            <div class="value" th:text="${requestedCount}">0</div>
+        </section>
+        <section class="card stat">
+            <div class="label">Scheduled</div>
+            <div class="value" th:text="${scheduledCount}">0</div>
+        </section>
+        <section class="card stat">
+            <div class="label">In progress</div>
+            <div class="value" th:text="${inProgressCount}">0</div>
+        </section>
+    </div>
+
+    <section class="card" style="margin-top: 20px;">
+        <h2 class="section-title">Open orders</h2>
+        <div class="empty" th:if="${#lists.isEmpty(openOrders)}">
+            Nothing on the floor right now.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(openOrders)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Vehicle</th>
+                    <th>Customer</th>
+                    <th>Work</th>
+                    <th>Mechanic</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${openOrders}">
+                    <td><strong th:text="${order.reference}">RO</strong></td>
+                    <td>
+                        <span th:text="${order.vehicle.plate}">plate</span><br>
+                        <span class="hint" th:text="|${order.vehicle.make} ${order.vehicle.model}|">model</span>
+                    </td>
+                    <td th:text="|${order.vehicle.owner.firstName} ${order.vehicle.owner.lastName}|">owner</td>
+                    <td th:text="${order.requiredSpecialty}">specialty</td>
+                    <td th:text="${order.mechanic != null} ? ${order.mechanic.fullName} : '—'">mechanic</td>
+                    <td>
+                        <span class="tag" th:classappend="'tag-' + ${#strings.toLowerCase(order.status)}"
+                              th:text="${#strings.replace(order.status, '_', ' ')}">status</span>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm" th:href="@{/orders/{id}(id=${order.id})}">Open</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="section-title">Recently completed</h2>
+        <div class="empty" th:if="${#lists.isEmpty(completedOrders)}">
+            No completed orders yet.
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(completedOrders)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Vehicle</th>
+                    <th>Mechanic</th>
+                    <th>Completed</th>
+                    <th class="money">Total</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${completedOrders}">
+                    <td th:text="${order.reference}">RO</td>
+                    <td th:text="${order.vehicle.plate}">plate</td>
+                    <td th:text="${order.mechanic != null} ? ${order.mechanic.fullName} : '—'">mechanic</td>
+                    <td th:text="${order.completedAt != null}
+                                 ? ${#temporals.format(order.completedAt, 'dd MMM, HH:mm')} : '—'">when</td>
+                    <td class="money"
+                        th:text="${#numbers.formatDecimal(order.labourCost.add(order.partsCost), 1, 2)} + ' BGN'">0.00</td>
+                    <td><a class="btn btn-ghost btn-sm" th:href="@{/orders/{id}(id=${order.id})}">Open</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
