@@ -2,6 +2,7 @@ package bg.softuni.garage.repairorder;
 
 import bg.softuni.garage.mechanic.MechanicService;
 import bg.softuni.garage.mechanic.Specialty;
+import bg.softuni.garage.parts.PartsCatalogService;
 import bg.softuni.garage.repairorder.dto.AssignmentRequest;
 import bg.softuni.garage.repairorder.dto.RepairOrderRequest;
 import bg.softuni.garage.repairorder.dto.ServiceTaskRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
@@ -35,15 +37,18 @@ public class RepairOrderController {
     private final ServiceTaskService serviceTaskService;
     private final VehicleService vehicleService;
     private final MechanicService mechanicService;
+    private final PartsCatalogService partsCatalogService;
 
     public RepairOrderController(RepairOrderService repairOrderService,
                                  ServiceTaskService serviceTaskService,
                                  VehicleService vehicleService,
-                                 MechanicService mechanicService) {
+                                 MechanicService mechanicService,
+                                 PartsCatalogService partsCatalogService) {
         this.repairOrderService = repairOrderService;
         this.serviceTaskService = serviceTaskService;
         this.vehicleService = vehicleService;
         this.mechanicService = mechanicService;
+        this.partsCatalogService = partsCatalogService;
     }
 
     @GetMapping
@@ -92,10 +97,12 @@ public class RepairOrderController {
         model.addAttribute("order", order);
         model.addAttribute("tasks", serviceTaskService.findForOrder(order));
         model.addAttribute("staffView", staffView);
+        model.addAttribute("reservations", partsCatalogService.reservationsFor(order.getId()));
         if (staffView) {
             model.addAttribute("mechanics", mechanicService.findActive());
             model.addAttribute("assignmentRequest", new AssignmentRequest());
             model.addAttribute("serviceTaskRequest", new ServiceTaskRequest());
+            model.addAttribute("catalogue", partsCatalogService.catalogue());
         }
         return "orders/details";
     }
@@ -160,6 +167,27 @@ public class RepairOrderController {
                              RedirectAttributes redirectAttributes) {
         serviceTaskService.remove(id, taskId);
         redirectAttributes.addFlashAttribute("success", "Task removed.");
+        return redirectToDetails(id);
+    }
+
+    @PostMapping("/{id}/parts")
+    @PreAuthorize("hasAuthority('PART_RESERVE')")
+    public String reservePart(@PathVariable UUID id,
+                              @RequestParam String sku,
+                              @RequestParam int quantity,
+                              RedirectAttributes redirectAttributes) {
+        partsCatalogService.reserve(id, sku, quantity);
+        redirectAttributes.addFlashAttribute("success", quantity + " x " + sku + " reserved.");
+        return redirectToDetails(id);
+    }
+
+    @DeleteMapping("/{id}/parts/{reservationId}")
+    @PreAuthorize("hasAuthority('PART_RESERVE')")
+    public String releasePart(@PathVariable UUID id,
+                              @PathVariable UUID reservationId,
+                              RedirectAttributes redirectAttributes) {
+        partsCatalogService.release(reservationId);
+        redirectAttributes.addFlashAttribute("success", "The part has been returned to stock.");
         return redirectToDetails(id);
     }
 

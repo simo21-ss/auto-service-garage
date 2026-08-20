@@ -71,6 +71,49 @@
                     </table>
                 </div>
 
+                <h2 class="section-title">Parts</h2>
+                <div class="empty" th:if="${#lists.isEmpty(reservations)}">
+                    No parts have been reserved for this job.
+                </div>
+
+                <div class="table-wrap" th:unless="${#lists.isEmpty(reservations)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Part</th>
+                            <th>Qty</th>
+                            <th class="money">Unit price</th>
+                            <th class="money">Line total</th>
+                            <th>Status</th>
+                            <th th:if="${staffView}"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="reservation : ${reservations}">
+                            <td th:text="${reservation.sku}">SKU</td>
+                            <td th:text="${reservation.partName}">part</td>
+                            <td th:text="${reservation.quantity}">1</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(reservation.unitPrice, 1, 2)}">0.00</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(reservation.lineTotal, 1, 2)}">0.00</td>
+                            <td>
+                                <span class="tag"
+                                      th:classappend="'tag-' + ${#strings.toLowerCase(reservation.status)}"
+                                      th:text="${reservation.status}">status</span>
+                            </td>
+                            <td th:if="${staffView}">
+                                <form class="inline-form" method="post"
+                                      th:if="${reservation.status == 'RESERVED'}"
+                                      th:action="@{/orders/{id}/parts/{rid}(id=${order.id},rid=${reservation.id})}">
+                                    <input type="hidden" name="_method" value="delete">
+                                    <button type="submit" class="btn btn-danger btn-sm">Return</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <h2 class="section-title">Costs</h2>
                 <div class="table-wrap">
                     <table>
@@ -159,6 +202,31 @@
                         <input type="number" id="hours" name="hours" step="0.25" min="0.25" max="40" value="1.00">
                     </div>
                     <button type="submit" class="btn">Add task</button>
+                </form>
+            </section>
+
+            <section class="card"
+                     th:if="${staffView and (order.status.name() == 'SCHEDULED' or order.status.name() == 'IN_PROGRESS')}">
+                <h2 class="section-title">Reserve a part</h2>
+                <p class="hint" th:if="${#lists.isEmpty(catalogue)}">
+                    The parts service is not reachable right now.
+                </p>
+                <form method="post" th:action="@{/orders/{id}/parts(id=${order.id})}"
+                      th:unless="${#lists.isEmpty(catalogue)}">
+                    <div class="field">
+                        <label for="sku">Part</label>
+                        <select id="sku" name="sku">
+                            <option th:each="part : ${catalogue}"
+                                    th:value="${part.sku}"
+                                    th:disabled="${part.quantityAvailable == 0}"
+                                    th:text="|${part.name} (${part.quantityAvailable} available)|">part</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" max="1000">
+                    </div>
+                    <button type="submit" class="btn">Reserve from stock</button>
                 </form>
             </section>
 
