@@ -4,6 +4,7 @@ import bg.softuni.garage.common.exception.BusinessRuleException;
 import bg.softuni.garage.common.exception.ResourceNotFoundException;
 import bg.softuni.garage.mechanic.Mechanic;
 import bg.softuni.garage.mechanic.MechanicService;
+import bg.softuni.garage.parts.PartsCatalogService;
 import bg.softuni.garage.repairorder.dto.AssignmentRequest;
 import bg.softuni.garage.repairorder.dto.RepairOrderRequest;
 import bg.softuni.garage.user.UserService;
@@ -30,17 +31,20 @@ public class RepairOrderServiceImpl implements RepairOrderService {
     private final VehicleService vehicleService;
     private final MechanicService mechanicService;
     private final UserService userService;
+    private final PartsCatalogService partsCatalogService;
 
     public RepairOrderServiceImpl(RepairOrderRepository repairOrderRepository,
                                   ServiceTaskRepository serviceTaskRepository,
                                   VehicleService vehicleService,
                                   MechanicService mechanicService,
-                                  UserService userService) {
+                                  UserService userService,
+                                  PartsCatalogService partsCatalogService) {
         this.repairOrderRepository = repairOrderRepository;
         this.serviceTaskRepository = serviceTaskRepository;
         this.vehicleService = vehicleService;
         this.mechanicService = mechanicService;
         this.userService = userService;
+        this.partsCatalogService = partsCatalogService;
     }
 
     @Override
@@ -158,12 +162,15 @@ public class RepairOrderServiceImpl implements RepairOrderService {
             throw new BusinessRuleException(pending + " service task(s) are still pending");
         }
 
+        BigDecimal partsCost = partsCatalogService.consumeAllFor(order.getId());
+
         order.setStatus(RepairOrderStatus.COMPLETED);
         order.setCompletedAt(LocalDateTime.now());
+        order.setPartsCost(partsCost);
 
         RepairOrder saved = repairOrderRepository.save(order);
-        log.info("Completed repair order {} with {} task(s), labour {}",
-                saved.getReference(), tasks.size(), saved.getLabourCost());
+        log.info("Completed repair order {} with {} task(s), labour {}, parts {}",
+                saved.getReference(), tasks.size(), saved.getLabourCost(), saved.getPartsCost());
         return saved;
     }
 
@@ -183,11 +190,13 @@ public class RepairOrderServiceImpl implements RepairOrderService {
                     "Work has already started, please call the workshop to cancel");
         }
 
+        int released = partsCatalogService.releaseAllFor(order.getId());
+
         order.setStatus(RepairOrderStatus.CANCELLED);
 
         RepairOrder saved = repairOrderRepository.save(order);
-        log.info("Cancelled repair order {} ({})",
-                saved.getReference(), staffView ? "by workshop staff" : "by customer");
+        log.info("Cancelled repair order {} ({}), released {} part reservation(s)",
+                saved.getReference(), staffView ? "by workshop staff" : "by customer", released);
         return saved;
     }
 
