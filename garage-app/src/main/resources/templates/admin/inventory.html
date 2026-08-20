@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inventory')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>Inventory</h1>
+            <p>Stock levels from the parts service. Restocking writes an entry to the stock ledger.</p>
+        </div>
+    </div>
+
+    <section class="card" th:if="${!#lists.isEmpty(lowStock)}">
+        <h2 class="section-title">Below reorder level</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Part</th>
+                    <th>Available</th>
+                    <th>Reorder level</th>
+                    <th>Supplier</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="part : ${lowStock}">
+                    <td><strong th:text="${part.sku}">SKU</strong></td>
+                    <td th:text="${part.name}">name</td>
+                    <td><span class="tag tag-off" th:text="${part.quantityAvailable}">0</span></td>
+                    <td th:text="${part.reorderLevel}">0</td>
+                    <td th:text="${part.supplierName}">supplier</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2 class="section-title">All parts</h2>
+        <div class="empty" th:if="${#lists.isEmpty(parts)}">
+            The parts service is not reachable right now.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(parts)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Part</th>
+                    <th>On hand</th>
+                    <th>Reserved</th>
+                    <th>Available</th>
+                    <th>Restock</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="part : ${parts}">
+                    <td><strong th:text="${part.sku}">SKU</strong></td>
+                    <td th:text="${part.name}">name</td>
+                    <td th:text="${part.quantityOnHand}">0</td>
+                    <td th:text="${part.quantityReserved}">0</td>
+                    <td>
+                        <span class="tag" th:classappend="${part.belowReorderLevel} ? 'tag-off' : 'tag-on'"
+                              th:text="${part.quantityAvailable}">0</span>
+                    </td>
+                    <td>
+                        <form class="row-form" method="post"
+                              th:action="@{/admin/inventory/{id}/restock(id=${part.id})}">
+                            <input type="number" name="quantity" value="10" min="1" max="10000"
+                                   style="width: 90px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px;">
+                            <button type="submit" class="btn btn-sm">Restock</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

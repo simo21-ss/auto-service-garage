@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Parts catalogue')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>Parts catalogue</h1>
+            <p>Live stock from the parts warehouse. Availability already accounts for parts
+                reserved against open jobs.</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="empty" th:if="${#lists.isEmpty(parts)}">
+            The parts service is not reachable right now. Please try again shortly.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(parts)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Part</th>
+                    <th>Category</th>
+                    <th class="money">Unit price</th>
+                    <th>On hand</th>
+                    <th>Reserved</th>
+                    <th>Available</th>
+                    <th>Supplier</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="part : ${parts}">
+                    <td><strong th:text="${part.sku}">SKU</strong></td>
+                    <td th:text="${part.name}">name</td>
+                    <td th:text="${part.category}">category</td>
+                    <td class="money" th:text="${#numbers.formatDecimal(part.unitPrice, 1, 2)} + ' BGN'">0.00</td>
+                    <td th:text="${part.quantityOnHand}">0</td>
+                    <td th:text="${part.quantityReserved}">0</td>
+                    <td>
+                        <span class="tag" th:classappend="${part.belowReorderLevel} ? 'tag-off' : 'tag-on'"
+                              th:text="${part.quantityAvailable}">0</span>
+                    </td>
+                    <td th:text="${part.supplierName}">supplier</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

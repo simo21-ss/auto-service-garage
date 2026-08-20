@@ -25,6 +25,8 @@
             <a sec:authorize="hasAuthority('VEHICLE_MANAGE')" th:href="@{/vehicles}">Vehicles</a>
             <a sec:authorize="hasAuthority('ORDER_BOOK')" th:href="@{/orders}">My orders</a>
             <a sec:authorize="hasAnyRole('MECHANIC','ADMIN')" th:href="@{/workshop}">Workshop</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/parts}">Parts</a>
+            <a sec:authorize="hasAuthority('PART_RESTOCK')" th:href="@{/admin/inventory}">Inventory</a>
             <a sec:authorize="hasAuthority('MECHANIC_MANAGE')" th:href="@{/admin/mechanics}">Mechanics</a>
             <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/users}">Users</a>
 
