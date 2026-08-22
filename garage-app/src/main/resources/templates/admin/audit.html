@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Audit trail')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>Audit trail</h1>
+            <p>Completed and cancelled jobs, plus what the scheduled maintenance jobs found.</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="empty" th:if="${#lists.isEmpty(entries)}">
+            Nothing has been recorded yet.
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(entries)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Action</th>
+                    <th>Actor</th>
+                    <th>Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${entries}">
+                    <td th:text="${#temporals.format(entry.occurredAt, 'dd MMM, HH:mm:ss')}">when</td>
+                    <td><span class="tag" th:text="${entry.action}">ACTION</span></td>
+                    <td th:text="${entry.actor}">actor</td>
+                    <td th:text="${entry.details}">details</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
