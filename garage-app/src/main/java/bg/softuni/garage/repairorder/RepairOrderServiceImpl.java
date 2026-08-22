@@ -1,5 +1,7 @@
 package bg.softuni.garage.repairorder;
 
+import bg.softuni.garage.common.event.RepairOrderCancelledEvent;
+import bg.softuni.garage.common.event.RepairOrderCompletedEvent;
 import bg.softuni.garage.common.exception.BusinessRuleException;
 import bg.softuni.garage.common.exception.ResourceNotFoundException;
 import bg.softuni.garage.mechanic.Mechanic;
@@ -11,6 +13,7 @@ import bg.softuni.garage.user.UserService;
 import bg.softuni.garage.vehicle.Vehicle;
 import bg.softuni.garage.vehicle.VehicleService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,19 +35,22 @@ public class RepairOrderServiceImpl implements RepairOrderService {
     private final MechanicService mechanicService;
     private final UserService userService;
     private final PartsCatalogService partsCatalogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RepairOrderServiceImpl(RepairOrderRepository repairOrderRepository,
                                   ServiceTaskRepository serviceTaskRepository,
                                   VehicleService vehicleService,
                                   MechanicService mechanicService,
                                   UserService userService,
-                                  PartsCatalogService partsCatalogService) {
+                                  PartsCatalogService partsCatalogService,
+                                  ApplicationEventPublisher eventPublisher) {
         this.repairOrderRepository = repairOrderRepository;
         this.serviceTaskRepository = serviceTaskRepository;
         this.vehicleService = vehicleService;
         this.mechanicService = mechanicService;
         this.userService = userService;
         this.partsCatalogService = partsCatalogService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -169,6 +175,12 @@ public class RepairOrderServiceImpl implements RepairOrderService {
         order.setPartsCost(partsCost);
 
         RepairOrder saved = repairOrderRepository.save(order);
+        eventPublisher.publishEvent(new RepairOrderCompletedEvent(saved.getId(),
+                saved.getReference(),
+                saved.getVehicle().getPlate(),
+                saved.getMechanic() == null ? null : saved.getMechanic().getFullName(),
+                saved.getLabourCost().add(saved.getPartsCost())));
+
         log.info("Completed repair order {} with {} task(s), labour {}, parts {}",
                 saved.getReference(), tasks.size(), saved.getLabourCost(), saved.getPartsCost());
         return saved;
@@ -195,6 +207,12 @@ public class RepairOrderServiceImpl implements RepairOrderService {
         order.setStatus(RepairOrderStatus.CANCELLED);
 
         RepairOrder saved = repairOrderRepository.save(order);
+        eventPublisher.publishEvent(new RepairOrderCancelledEvent(saved.getId(),
+                saved.getReference(),
+                saved.getVehicle().getPlate(),
+                released,
+                staffView));
+
         log.info("Cancelled repair order {} ({}), released {} part reservation(s)",
                 saved.getReference(), staffView ? "by workshop staff" : "by customer", released);
         return saved;

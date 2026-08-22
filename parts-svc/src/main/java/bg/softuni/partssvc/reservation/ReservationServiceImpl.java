@@ -1,8 +1,10 @@
 package bg.softuni.partssvc.reservation;
 
+import bg.softuni.partssvc.common.event.StockDepletedEvent;
 import bg.softuni.partssvc.common.exception.InsufficientStockException;
 import bg.softuni.partssvc.common.exception.ReservationNotFoundException;
 import bg.softuni.partssvc.common.exception.ReservationStateException;
+import bg.softuni.partssvc.config.CacheConfig;
 import bg.softuni.partssvc.ledger.StockLedgerService;
 import bg.softuni.partssvc.part.Part;
 import bg.softuni.partssvc.part.PartRepository;
@@ -10,6 +12,9 @@ import bg.softuni.partssvc.part.PartService;
 import bg.softuni.partssvc.reservation.dto.ReservationRequest;
 import bg.softuni.partssvc.reservation.dto.ReservationResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,19 +33,26 @@ public class ReservationServiceImpl implements ReservationService {
     private final PartRepository partRepository;
     private final PartService partService;
     private final StockLedgerService stockLedgerService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ReservationServiceImpl(PartReservationRepository reservationRepository,
                                   PartRepository partRepository,
                                   PartService partService,
-                                  StockLedgerService stockLedgerService) {
+                                  StockLedgerService stockLedgerService,
+                                  ApplicationEventPublisher eventPublisher) {
         this.reservationRepository = reservationRepository;
         this.partRepository = partRepository;
         this.partService = partService;
         this.stockLedgerService = stockLedgerService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public ReservationResponse reserve(ReservationRequest request, String actor) {
         Part part = partService.getEntityBySku(request.sku());
         int available = part.availableQuantity();
@@ -61,6 +73,8 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setCreatedAt(LocalDateTime.now());
 
         PartReservation saved = reservationRepository.save(reservation);
+        publishIfDepleted(part);
+
         log.info("Reserved {} x {} for repair order {} ({} left available)",
                 saved.getQuantity(), part.getSku(), saved.getRepairOrderId(), part.availableQuantity());
         return toResponse(saved);
@@ -68,6 +82,10 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public ReservationResponse consume(UUID reservationId, String actor) {
         PartReservation reservation = requireReserved(reservationId, "consumed");
         Part part = reservation.getPart();
@@ -91,6 +109,10 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public ReservationResponse release(UUID reservationId, String actor) {
         PartReservation reservation = requireReserved(reservationId, "released");
         PartReservation saved = returnToStock(reservation, ReservationStatus.RELEASED);
@@ -116,6 +138,10 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public int expireStaleReservations(Duration olderThan, String actor) {
         LocalDateTime cutoff = LocalDateTime.now().minus(olderThan);
         List<PartReservation> stale = reservationRepository
@@ -127,6 +153,16 @@ public class ReservationServiceImpl implements ReservationService {
             log.info("Expired {} stale reservation(s) older than {}", stale.size(), olderThan);
         }
         return stale.size();
+    }
+
+    private void publishIfDepleted(Part part) {
+        if (part.availableQuantity() <= part.getReorderLevel()) {
+            eventPublisher.publishEvent(new StockDepletedEvent(part.getSku(),
+                    part.getName(),
+                    part.availableQuantity(),
+                    part.getReorderLevel(),
+                    part.getSupplier().getName()));
+        }
     }
 
     private PartReservation returnToStock(PartReservation reservation, ReservationStatus status) {
