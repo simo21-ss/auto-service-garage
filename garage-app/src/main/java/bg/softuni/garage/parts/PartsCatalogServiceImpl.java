@@ -5,8 +5,12 @@ import bg.softuni.garage.parts.dto.PartView;
 import bg.softuni.garage.parts.dto.ReservationCommand;
 import bg.softuni.garage.parts.dto.ReservationView;
 import bg.softuni.garage.parts.dto.RestockCommand;
+import bg.softuni.garage.config.CacheConfig;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,6 +30,7 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Cacheable(CacheConfig.PARTS_CATALOGUE)
     public List<PartView> catalogue() {
         try {
             return partsClient.catalogue().parts();
@@ -36,6 +41,7 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Cacheable(CacheConfig.LOW_STOCK_PARTS)
     public List<PartView> lowStock() {
         try {
             return partsClient.lowStock().parts();
@@ -57,6 +63,10 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PARTS_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK_PARTS, allEntries = true)
+    })
     public ReservationView reserve(UUID repairOrderId, String sku, int quantity) {
         ReservationView reservation =
                 partsClient.reserve(new ReservationCommand(repairOrderId, sku, quantity));
@@ -67,6 +77,10 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PARTS_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK_PARTS, allEntries = true)
+    })
     public void release(UUID reservationId) {
         ReservationView released = partsClient.release(reservationId);
         log.info("Released reservation {} ({} x {}) back to stock",
@@ -74,6 +88,10 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PARTS_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK_PARTS, allEntries = true)
+    })
     public BigDecimal consumeAllFor(UUID repairOrderId) {
         try {
             List<ReservationView> reserved = openReservations(repairOrderId);
@@ -95,6 +113,10 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PARTS_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK_PARTS, allEntries = true)
+    })
     public int releaseAllFor(UUID repairOrderId) {
         try {
             List<ReservationView> reserved = openReservations(repairOrderId);
@@ -113,6 +135,10 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PARTS_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK_PARTS, allEntries = true)
+    })
     public PartView restock(UUID partId, int quantity, String note) {
         PartView part = partsClient.restock(partId, new RestockCommand(quantity, note));
         log.info("Restocked {} by {} unit(s), now {} on hand",

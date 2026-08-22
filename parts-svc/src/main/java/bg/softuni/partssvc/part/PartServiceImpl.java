@@ -1,6 +1,7 @@
 package bg.softuni.partssvc.part;
 
 import bg.softuni.partssvc.common.exception.DuplicateSkuException;
+import bg.softuni.partssvc.config.CacheConfig;
 import bg.softuni.partssvc.common.exception.PartNotFoundException;
 import bg.softuni.partssvc.ledger.StockLedgerService;
 import bg.softuni.partssvc.part.dto.PartResponse;
@@ -8,6 +9,9 @@ import bg.softuni.partssvc.part.dto.PartUpsertRequest;
 import bg.softuni.partssvc.part.dto.RestockRequest;
 import bg.softuni.partssvc.supplier.SupplierService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +38,7 @@ public class PartServiceImpl implements PartService {
     }
 
     @Override
+    @Cacheable(CacheConfig.PART_CATALOGUE)
     @Transactional(readOnly = true)
     public List<PartResponse> findAll() {
         return partRepository.findAllByOrderByNameAsc().stream().map(this::toResponse).toList();
@@ -48,6 +53,7 @@ public class PartServiceImpl implements PartService {
     }
 
     @Override
+    @Cacheable(CacheConfig.LOW_STOCK)
     @Transactional(readOnly = true)
     public List<PartResponse> findBelowReorderLevel() {
         return partRepository.findBelowReorderLevel().stream().map(this::toResponse).toList();
@@ -75,6 +81,10 @@ public class PartServiceImpl implements PartService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public PartResponse create(PartUpsertRequest request, String actor) {
         String sku = request.sku().trim().toUpperCase();
         if (partRepository.existsBySkuIgnoreCase(sku)) {
@@ -98,6 +108,10 @@ public class PartServiceImpl implements PartService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public PartResponse update(UUID id, PartUpsertRequest request, String actor) {
         Part part = getEntityById(id);
         String sku = request.sku().trim().toUpperCase();
@@ -116,6 +130,10 @@ public class PartServiceImpl implements PartService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.PART_CATALOGUE, allEntries = true),
+            @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
+    })
     public PartResponse restock(UUID id, RestockRequest request, String actor) {
         Part part = getEntityById(id);
         int before = part.getQuantityOnHand();

@@ -6,7 +6,10 @@ import bg.softuni.garage.common.exception.ResourceNotFoundException;
 import bg.softuni.garage.mechanic.dto.MechanicRequest;
 import bg.softuni.garage.repairorder.RepairOrderRepository;
 import bg.softuni.garage.repairorder.RepairOrderStatus;
+import bg.softuni.garage.config.CacheConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,7 @@ public class MechanicServiceImpl implements MechanicService {
     }
 
     @Override
+    @Cacheable(CacheConfig.ACTIVE_MECHANICS)
     @Transactional(readOnly = true)
     public List<Mechanic> findActive() {
         return mechanicRepository.findAllByActiveTrueOrderByFullNameAsc();
@@ -47,6 +51,7 @@ public class MechanicServiceImpl implements MechanicService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.ACTIVE_MECHANICS, allEntries = true)
     public Mechanic create(MechanicRequest request) {
         String fullName = request.getFullName().trim();
         if (mechanicRepository.existsByFullNameIgnoreCase(fullName)) {
@@ -65,6 +70,7 @@ public class MechanicServiceImpl implements MechanicService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.ACTIVE_MECHANICS, allEntries = true)
     public Mechanic update(UUID id, MechanicRequest request) {
         Mechanic mechanic = getById(id);
         String fullName = request.getFullName().trim();
@@ -88,6 +94,7 @@ public class MechanicServiceImpl implements MechanicService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.ACTIVE_MECHANICS, allEntries = true)
     public void delete(UUID id) {
         Mechanic mechanic = getById(id);
         if (hasOpenWork(mechanic)) {
