@@ -27,6 +27,11 @@ spring:
     type: redis
 
 parts:
+  jobs:
+    auto-reorder-cron: "0 0 2 * * *"
+    expiry-initial-delay-ms: 30000
+    expiry-interval-ms: 600000
+    reservation-ttl-hours: 48
   security:
     service-token:
       secret: ${SERVICE_TOKEN_SECRET:0f2b7c1a9d4e6f83b5c07a1e2d9f4c68a3b5d7e91c02f4a6b8d0e2f4a6c8b1d3}
