@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:garage;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+
+  cache:
+    type: simple
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+garage:
+  parts-service:
+    url: http://localhost:0
+  jobs:
+    overdue-sweep-cron: "0 0 5 31 2 ?"
+    audit-purge-cron: "0 0 5 31 2 ?"
+    low-stock-initial-delay-ms: 3600000
+    low-stock-interval-ms: 3600000
+  security:
+    service-token:
+      secret: test-secret-key-that-is-long-enough-for-hmac-sha-256-signing
+      issuer: garage-app
+      ttl-seconds: 60
+
+logging:
+  level:
+    bg.softuni.garage: WARN
