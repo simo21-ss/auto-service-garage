@@ -2,13 +2,13 @@ package bg.softuni.partssvc.reservation;
 
 import bg.softuni.partssvc.common.event.StockDepletedEvent;
 import bg.softuni.partssvc.common.exception.InsufficientStockException;
+import bg.softuni.partssvc.common.exception.PartNotFoundException;
 import bg.softuni.partssvc.common.exception.ReservationNotFoundException;
 import bg.softuni.partssvc.common.exception.ReservationStateException;
 import bg.softuni.partssvc.config.CacheConfig;
 import bg.softuni.partssvc.ledger.StockLedgerService;
 import bg.softuni.partssvc.part.Part;
 import bg.softuni.partssvc.part.PartRepository;
-import bg.softuni.partssvc.part.PartService;
 import bg.softuni.partssvc.reservation.dto.ReservationRequest;
 import bg.softuni.partssvc.reservation.dto.ReservationResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -31,18 +31,15 @@ public class ReservationServiceImpl implements ReservationService {
 
     private final PartReservationRepository reservationRepository;
     private final PartRepository partRepository;
-    private final PartService partService;
     private final StockLedgerService stockLedgerService;
     private final ApplicationEventPublisher eventPublisher;
 
     public ReservationServiceImpl(PartReservationRepository reservationRepository,
                                   PartRepository partRepository,
-                                  PartService partService,
                                   StockLedgerService stockLedgerService,
                                   ApplicationEventPublisher eventPublisher) {
         this.reservationRepository = reservationRepository;
         this.partRepository = partRepository;
-        this.partService = partService;
         this.stockLedgerService = stockLedgerService;
         this.eventPublisher = eventPublisher;
     }
@@ -54,7 +51,8 @@ public class ReservationServiceImpl implements ReservationService {
             @CacheEvict(value = CacheConfig.LOW_STOCK, allEntries = true)
     })
     public ReservationResponse reserve(ReservationRequest request, String actor) {
-        Part part = partService.getEntityBySku(request.sku());
+        Part part = partRepository.findWithLockBySkuIgnoreCase(request.sku())
+                .orElseThrow(() -> new PartNotFoundException("No part with SKU " + request.sku()));
         int available = part.availableQuantity();
 
         if (request.quantity() > available) {

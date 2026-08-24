@@ -8,7 +8,6 @@ import bg.softuni.partssvc.common.exception.ReservationStateException;
 import bg.softuni.partssvc.ledger.StockLedgerService;
 import bg.softuni.partssvc.part.Part;
 import bg.softuni.partssvc.part.PartRepository;
-import bg.softuni.partssvc.part.PartService;
 import bg.softuni.partssvc.reservation.dto.ReservationRequest;
 import bg.softuni.partssvc.reservation.dto.ReservationResponse;
 import org.junit.jupiter.api.Test;
@@ -43,9 +42,6 @@ class ReservationServiceImplTest {
     private PartRepository partRepository;
 
     @Mock
-    private PartService partService;
-
-    @Mock
     private StockLedgerService stockLedgerService;
 
     @Mock
@@ -57,7 +53,7 @@ class ReservationServiceImplTest {
     @Test
     void reserveMovesStockFromAvailableToReserved() {
         Part part = TestFixtures.part("BRK-1", 20, 0, 2);
-        when(partService.getEntityBySku("BRK-1")).thenReturn(part);
+        when(partRepository.findWithLockBySkuIgnoreCase("BRK-1")).thenReturn(Optional.of(part));
         when(reservationRepository.save(any(PartReservation.class)))
                 .thenAnswer(call -> call.getArgument(0));
 
@@ -74,7 +70,7 @@ class ReservationServiceImplTest {
     @Test
     void reserveRejectsMoreThanIsAvailable() {
         Part part = TestFixtures.part("BRK-1", 10, 8, 2);
-        when(partService.getEntityBySku("BRK-1")).thenReturn(part);
+        when(partRepository.findWithLockBySkuIgnoreCase("BRK-1")).thenReturn(Optional.of(part));
 
         assertThatThrownBy(() -> reservationService.reserve(
                 new ReservationRequest(UUID.randomUUID(), "BRK-1", 5), "mechanic"))
@@ -87,7 +83,7 @@ class ReservationServiceImplTest {
     @Test
     void reserveCountsReservedStockAsUnavailable() {
         Part part = TestFixtures.part("BRK-1", 10, 10, 2);
-        when(partService.getEntityBySku("BRK-1")).thenReturn(part);
+        when(partRepository.findWithLockBySkuIgnoreCase("BRK-1")).thenReturn(Optional.of(part));
 
         assertThatThrownBy(() -> reservationService.reserve(
                 new ReservationRequest(UUID.randomUUID(), "BRK-1", 1), "mechanic"))
@@ -97,7 +93,7 @@ class ReservationServiceImplTest {
     @Test
     void reservePublishesAnEventWhenStockDropsToTheReorderLevel() {
         Part part = TestFixtures.part("BRK-1", 10, 0, 5);
-        when(partService.getEntityBySku("BRK-1")).thenReturn(part);
+        when(partRepository.findWithLockBySkuIgnoreCase("BRK-1")).thenReturn(Optional.of(part));
         when(reservationRepository.save(any(PartReservation.class)))
                 .thenAnswer(call -> call.getArgument(0));
 
@@ -109,7 +105,7 @@ class ReservationServiceImplTest {
     @Test
     void reserveDoesNotPublishWhenStockStaysHealthy() {
         Part part = TestFixtures.part("BRK-1", 30, 0, 5);
-        when(partService.getEntityBySku("BRK-1")).thenReturn(part);
+        when(partRepository.findWithLockBySkuIgnoreCase("BRK-1")).thenReturn(Optional.of(part));
         when(reservationRepository.save(any(PartReservation.class)))
                 .thenAnswer(call -> call.getArgument(0));
 
