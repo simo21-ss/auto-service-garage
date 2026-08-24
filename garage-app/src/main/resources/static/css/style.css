@@ -162,6 +162,10 @@ button.linkish {
     margin-top: 20px;
 }
 
+.grid .card + .card {
+    margin-top: 0;
+}
+
 .card-narrow {
     max-width: 460px;
     margin: 0 auto;
