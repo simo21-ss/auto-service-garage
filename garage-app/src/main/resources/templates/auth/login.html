@@ -13,6 +13,9 @@
         <div class="alert alert-error" th:if="${param.error}">
             <span th:text="#{auth.login.failed}">Wrong username or password.</span>
         </div>
+        <div class="alert alert-error" th:if="${param.expired}">
+            <span th:text="#{auth.login.expired}">Your session has ended.</span>
+        </div>
         <div class="alert alert-success" th:if="${param.logout}">
             <span th:text="#{auth.login.loggedOut}">You have been signed out.</span>
         </div>

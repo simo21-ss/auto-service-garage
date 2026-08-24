@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -35,6 +36,9 @@ class UserServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private SessionRegistry sessionRegistry;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -168,6 +172,7 @@ class UserServiceImplTest {
 
     @Test
     void changeRolePromotesTheUser() {
+        when(sessionRegistry.getAllPrincipals()).thenReturn(List.of());
         User target = TestFixtures.user("ivan", RoleName.CUSTOMER);
         when(userRepository.findById(target.getId())).thenReturn(Optional.of(target));
         when(roleRepository.findByName(RoleName.MECHANIC))
@@ -224,6 +229,7 @@ class UserServiceImplTest {
 
     @Test
     void suspendingAnAccountFlipsTheActiveFlag() {
+        when(sessionRegistry.getAllPrincipals()).thenReturn(List.of());
         User target = TestFixtures.user("ivan", RoleName.CUSTOMER);
         when(userRepository.findById(target.getId())).thenReturn(Optional.of(target));
         when(userRepository.save(any(User.class))).thenAnswer(call -> call.getArgument(0));

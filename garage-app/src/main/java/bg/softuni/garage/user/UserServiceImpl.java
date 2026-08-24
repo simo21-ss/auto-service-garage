@@ -6,6 +6,8 @@ import bg.softuni.garage.common.exception.ResourceNotFoundException;
 import bg.softuni.garage.user.dto.ProfileRequest;
 import bg.softuni.garage.user.dto.RegisterRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +23,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SessionRegistry sessionRegistry;
 
     public UserServiceImpl(UserRepository userRepository,
                            RoleRepository roleRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           SessionRegistry sessionRegistry) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.sessionRegistry = sessionRegistry;
     }
 
     @Override
@@ -125,6 +130,8 @@ public class UserServiceImpl implements UserService {
         user.setRole(role);
 
         User saved = userRepository.save(user);
+        expireSessionsOf(saved.getUsername());
+
         log.info("Changed role of '{}' from {} to {}", saved.getUsername(), previous, roleName);
         return saved;
     }
@@ -145,6 +152,8 @@ public class UserServiceImpl implements UserService {
         user.setActive(active);
 
         User saved = userRepository.save(user);
+        expireSessionsOf(saved.getUsername());
+
         log.info("Set account '{}' active flag to {}", saved.getUsername(), active);
         return saved;
     }
@@ -153,5 +162,19 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public long countByRole(RoleName roleName) {
         return userRepository.countByRoleName(roleName);
+    }
+
+    private void expireSessionsOf(String username) {
+        List<SessionInformation> sessions = sessionRegistry.getAllPrincipals().stream()
+                .filter(principal -> principal instanceof GarageUserDetails details
+                        && details.getUsername().equals(username))
+                .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+                .toList();
+
+        sessions.forEach(SessionInformation::expireNow);
+
+        if (!sessions.isEmpty()) {
+            log.info("Expired {} active session(s) of '{}'", sessions.size(), username);
+        }
     }
 }
