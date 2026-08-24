@@ -67,7 +67,7 @@ MongoDB document.
 Every entity uses a **UUID** primary key, and relationships are unidirectional `@ManyToOne`.
 
 A repair order moves through `REQUESTED → SCHEDULED → IN_PROGRESS → COMPLETED`, or is
-`CANCELLED` along the way. References are generated as `RO-<year>-<sequence>`.
+`CANCELLED` along the way. References are generated as `RO-<year>-<random>`, where the suffix is taken from a UUID so two simultaneous bookings can never collide on the unique reference column.
 
 ## Functionalities
 
