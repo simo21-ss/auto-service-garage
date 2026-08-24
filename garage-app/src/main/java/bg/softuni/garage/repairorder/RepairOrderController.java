@@ -1,6 +1,8 @@
 package bg.softuni.garage.repairorder;
 
 import bg.softuni.garage.mechanic.MechanicService;
+import bg.softuni.garage.common.export.InvoiceDocument;
+import bg.softuni.garage.common.export.InvoiceService;
 import bg.softuni.garage.mechanic.Specialty;
 import bg.softuni.garage.parts.PartsCatalogService;
 import bg.softuni.garage.repairorder.dto.AssignmentRequest;
@@ -11,6 +13,9 @@ import bg.softuni.garage.vehicle.VehicleService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,17 +43,20 @@ public class RepairOrderController {
     private final VehicleService vehicleService;
     private final MechanicService mechanicService;
     private final PartsCatalogService partsCatalogService;
+    private final InvoiceService invoiceService;
 
     public RepairOrderController(RepairOrderService repairOrderService,
                                  ServiceTaskService serviceTaskService,
                                  VehicleService vehicleService,
                                  MechanicService mechanicService,
-                                 PartsCatalogService partsCatalogService) {
+                                 PartsCatalogService partsCatalogService,
+                                 InvoiceService invoiceService) {
         this.repairOrderService = repairOrderService;
         this.serviceTaskService = serviceTaskService;
         this.vehicleService = vehicleService;
         this.mechanicService = mechanicService;
         this.partsCatalogService = partsCatalogService;
+        this.invoiceService = invoiceService;
     }
 
     @GetMapping
@@ -105,6 +113,18 @@ public class RepairOrderController {
             model.addAttribute("catalogue", partsCatalogService.catalogue());
         }
         return "orders/details";
+    }
+
+    @GetMapping("/{id}/invoice")
+    public ResponseEntity<byte[]> invoice(@PathVariable UUID id,
+                                          @AuthenticationPrincipal GarageUserDetails principal) {
+        InvoiceDocument invoice = invoiceService.renderInvoice(id, principal.getId(), isStaff(principal));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + invoice.fileName() + "\"")
+                .body(invoice.content());
     }
 
     @PutMapping("/{id}/cancel")

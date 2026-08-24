@@ -12,8 +12,13 @@
             <h1 th:text="${order.reference}">RO</h1>
             <p th:text="|${order.vehicle.make} ${order.vehicle.model} · ${order.vehicle.plate}|">vehicle</p>
         </div>
-        <span class="tag" th:classappend="'tag-' + ${#strings.toLowerCase(order.status)}"
-              th:text="${#strings.replace(order.status, '_', ' ')}">status</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a class="btn btn-ghost" th:if="${order.status.name() == 'COMPLETED'}"
+               th:href="@{/orders/{id}/invoice(id=${order.id})}"
+               th:text="#{export.invoice}">Download invoice (PDF)</a>
+            <span class="tag" th:classappend="'tag-' + ${#strings.toLowerCase(order.status)}"
+                  th:text="${#strings.replace(order.status, '_', ' ')}">status</span>
+        </div>
     </div>
 
     <div class="split">

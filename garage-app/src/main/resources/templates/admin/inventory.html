@@ -12,6 +12,8 @@
             <h1>Inventory</h1>
             <p>Stock levels from the parts service. Restocking writes an entry to the stock ledger.</p>
         </div>
+        <a class="btn" th:href="@{/admin/inventory/export}" th:text="#{export.inventory}">
+            Export inventory (Excel)</a>
     </div>
 
     <section class="card" th:if="${!#lists.isEmpty(lowStock)}">

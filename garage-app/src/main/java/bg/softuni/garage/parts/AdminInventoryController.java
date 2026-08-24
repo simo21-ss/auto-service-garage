@@ -1,6 +1,10 @@
 package bg.softuni.garage.parts;
 
+import bg.softuni.garage.common.export.InventoryReportService;
 import bg.softuni.garage.parts.dto.PartView;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,9 +25,12 @@ public class AdminInventoryController {
     private static final String REDIRECT_INVENTORY = "redirect:/admin/inventory";
 
     private final PartsCatalogService partsCatalogService;
+    private final InventoryReportService inventoryReportService;
 
-    public AdminInventoryController(PartsCatalogService partsCatalogService) {
+    public AdminInventoryController(PartsCatalogService partsCatalogService,
+                                    InventoryReportService inventoryReportService) {
         this.partsCatalogService = partsCatalogService;
+        this.inventoryReportService = inventoryReportService;
     }
 
     @GetMapping
@@ -31,6 +38,18 @@ public class AdminInventoryController {
         model.addAttribute("parts", partsCatalogService.catalogue());
         model.addAttribute("lowStock", partsCatalogService.lowStock());
         return "admin/inventory";
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('REPORT_EXPORT')")
+    public ResponseEntity<byte[]> export() {
+        byte[] workbook = inventoryReportService.renderInventoryWorkbook(partsCatalogService.catalogue());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"inventory.xlsx\"")
+                .body(workbook);
     }
 
     @PostMapping("/{id}/restock")
