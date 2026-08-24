@@ -5,7 +5,7 @@
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="|${title} · Pistonworks Garage|">Pistonworks Garage</title>
+    <title th:text="|${title} · #{brand.name}|">Pistonworks Garage</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
@@ -15,30 +15,35 @@
     <div class="bar">
         <a class="brand" th:href="@{/}">
             <span class="brand-mark">&#9881;</span>
-            <span>Pistonworks Garage</span>
+            <span th:text="#{brand.name}">Pistonworks Garage</span>
         </a>
 
         <nav class="site-nav">
-            <a th:href="@{/}">Home</a>
-            <a th:href="@{/about}">About</a>
+            <a th:href="@{/}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/about}" th:text="#{nav.about}">About</a>
 
-            <a sec:authorize="hasAuthority('VEHICLE_MANAGE')" th:href="@{/vehicles}">Vehicles</a>
-            <a sec:authorize="hasAuthority('ORDER_BOOK')" th:href="@{/orders}">My orders</a>
-            <a sec:authorize="hasAnyRole('MECHANIC','ADMIN')" th:href="@{/workshop}">Workshop</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/parts}">Parts</a>
-            <a sec:authorize="hasAuthority('PART_RESTOCK')" th:href="@{/admin/inventory}">Inventory</a>
-            <a sec:authorize="hasAuthority('MECHANIC_MANAGE')" th:href="@{/admin/mechanics}">Mechanics</a>
-            <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/users}">Users</a>
-            <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/audit}">Audit</a>
+            <a sec:authorize="hasAuthority('VEHICLE_MANAGE')" th:href="@{/vehicles}" th:text="#{nav.vehicles}">Vehicles</a>
+            <a sec:authorize="hasAuthority('ORDER_BOOK')" th:href="@{/orders}" th:text="#{nav.orders}">My orders</a>
+            <a sec:authorize="hasAnyRole('MECHANIC','ADMIN')" th:href="@{/workshop}" th:text="#{nav.workshop}">Workshop</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/parts}" th:text="#{nav.parts}">Parts</a>
+            <a sec:authorize="hasAuthority('PART_RESTOCK')" th:href="@{/admin/inventory}" th:text="#{nav.inventory}">Inventory</a>
+            <a sec:authorize="hasAuthority('MECHANIC_MANAGE')" th:href="@{/admin/mechanics}" th:text="#{nav.mechanics}">Mechanics</a>
+            <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/users}" th:text="#{nav.users}">Users</a>
+            <a sec:authorize="hasAuthority('USER_MANAGE')" th:href="@{/admin/audit}" th:text="#{nav.audit}">Audit</a>
 
-            <a sec:authorize="isAnonymous()" th:href="@{/login}">Sign in</a>
-            <a sec:authorize="isAnonymous()" th:href="@{/register}">Register</a>
+            <a sec:authorize="isAnonymous()" th:href="@{/login}" th:text="#{nav.login}">Sign in</a>
+            <a sec:authorize="isAnonymous()" th:href="@{/register}" th:text="#{nav.register}">Register</a>
 
-            <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/profile}" th:text="#{nav.profile}">Profile</a>
             <span sec:authorize="isAuthenticated()" class="who" sec:authentication="name">user</span>
+
+            <span class="lang" th:title="#{nav.language}">
+                <a th:href="@{''(lang='en')}" th:classappend="${#locale.language == 'en'} ? 'on'">EN</a>
+                <a th:href="@{''(lang='bg')}" th:classappend="${#locale.language == 'bg'} ? 'on'">BG</a>
+            </span>
             <form sec:authorize="isAuthenticated()" class="inline-form"
                   th:action="@{/logout}" method="post">
-                <button type="submit" class="linkish">Sign out</button>
+                <button type="submit" class="linkish" th:text="#{nav.logout}">Sign out</button>
             </form>
         </nav>
     </div>
@@ -51,8 +56,8 @@
 
 <footer class="site-footer" th:fragment="footer">
     <div class="bar">
-        <span>Pistonworks Garage &mdash; service bookings, repair tracking and parts logistics.</span>
-        <span>Sofia, Bulgaria</span>
+        <span th:text="#{brand.tagline}">Pistonworks Garage</span>
+        <span th:text="#{brand.location}">Sofia, Bulgaria</span>
     </div>
 </footer>
 

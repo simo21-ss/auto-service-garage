@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Edit profile')}"></head>
+<head th:replace="~{fragments/layout :: head(#{profile.edit.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 
 <main class="container">
     <section class="card card-narrow">
-        <h1>Edit profile</h1>
-        <p class="hint">Your username and role cannot be changed here.</p>
+        <h1 th:text="#{profile.edit.heading}">Edit profile</h1>
+        <p class="hint" th:text="#{profile.edit.subheading}">Username and role cannot be changed.</p>
 
         <form th:action="@{/profile}" th:object="${profileRequest}" method="post">
             <input type="hidden" name="_method" value="put">
 
             <div class="field">
-                <label for="email">Email</label>
+                <label for="email" th:text="#{auth.register.email}">Email</label>
                 <input type="email" id="email" th:field="*{email}"
                        th:classappend="${#fields.hasErrors('email')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('email')}"
                       th:errors="*{email}">error</span>
             </div>
             <div class="field">
-                <label for="firstName">First name</label>
+                <label for="firstName" th:text="#{auth.register.firstName}">First name</label>
                 <input type="text" id="firstName" th:field="*{firstName}"
                        th:classappend="${#fields.hasErrors('firstName')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('firstName')}"
                       th:errors="*{firstName}">error</span>
             </div>
             <div class="field">
-                <label for="lastName">Last name</label>
+                <label for="lastName" th:text="#{auth.register.lastName}">Last name</label>
                 <input type="text" id="lastName" th:field="*{lastName}"
                        th:classappend="${#fields.hasErrors('lastName')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('lastName')}"
                       th:errors="*{lastName}">error</span>
             </div>
             <div class="field">
-                <label for="phone">Phone</label>
+                <label for="phone" th:text="#{auth.register.phone}">Phone</label>
                 <input type="text" id="phone" th:field="*{phone}"
                        th:classappend="${#fields.hasErrors('phone')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('phone')}"
@@ -42,8 +42,8 @@
             </div>
 
             <div class="actions">
-                <button type="submit" class="btn">Save changes</button>
-                <a class="btn btn-ghost" th:href="@{/profile}">Cancel</a>
+                <button type="submit" class="btn" th:text="#{profile.edit.save}">Save changes</button>
+                <a class="btn btn-ghost" th:href="@{/profile}" th:text="#{profile.edit.cancel}">Cancel</a>
             </div>
         </form>
     </section>

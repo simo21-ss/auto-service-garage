@@ -1,34 +1,34 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('About')}"></head>
+<head th:replace="~{fragments/layout :: head(#{about.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 
 <main class="container">
     <div class="page-head">
         <div>
-            <h1>About the workshop</h1>
-            <p>Independent multi-brand service centre in Sofia, operating since 2004.</p>
+            <h1 th:text="#{about.heading}">About the workshop</h1>
+            <p th:text="#{about.subheading}">Independent service centre.</p>
         </div>
     </div>
 
     <section class="card">
-        <h2>What we do</h2>
+        <h2 th:text="#{about.what.title}">What we do</h2>
         <p>Pistonworks is a six-bay workshop handling diagnostics, engine and transmission work,
             suspension, brakes, electrical faults and bodywork. Every job is written up as a repair
             order, split into individual service tasks, and priced from the mechanic's hourly rate.</p>
 
-        <h2>How parts are handled</h2>
+        <h2 th:text="#{about.parts.title}">How parts are handled</h2>
         <p>Our warehouse is managed as a separate system. When a mechanic adds parts to a job the
             stock is reserved rather than sold, so the same alternator cannot be promised to two
             cars at once. Reservations are only converted into a sale when the job is completed,
             and are returned to stock automatically if the job is cancelled.</p>
 
-        <h2>Opening hours</h2>
+        <h2 th:text="#{about.hours.title}">Opening hours</h2>
         <p>Monday to Friday, 08:00&ndash;18:00. Saturday, 09:00&ndash;14:00. Closed on Sundays and
             public holidays.</p>
 
-        <h2>Find us</h2>
+        <h2 th:text="#{about.find.title}">Find us</h2>
         <p>14 Iskarsko Shose, Sofia 1592, Bulgaria &mdash; +359 2 970 4400</p>
     </section>
 </main>

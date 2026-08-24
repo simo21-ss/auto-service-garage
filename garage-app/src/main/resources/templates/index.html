@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Home')}"></head>
+<head th:replace="~{fragments/layout :: head(#{home.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 
@@ -10,69 +10,66 @@
 
     <div class="page-head">
         <div>
-            <h1 sec:authorize="isAnonymous()">Your car deserves a proper workshop</h1>
+            <h1 sec:authorize="isAnonymous()" th:text="#{home.heading.guest}">Your car deserves a proper workshop</h1>
             <h1 sec:authorize="isAuthenticated()"
-                th:text="|Welcome back, ${#authentication.principal.fullName}|">Welcome back</h1>
-            <p>Book a service slot, follow every repair step, and know exactly which parts went in.</p>
+                th:text="#{home.heading.member(${#authentication.principal.fullName})}">Welcome back</h1>
+            <p th:text="#{home.subheading}">Book a service slot.</p>
         </div>
     </div>
 
     <div class="grid">
         <section class="card stat">
-            <div class="label">Jobs on the floor</div>
+            <div class="label" th:text="#{home.stat.open}">Jobs on the floor</div>
             <div class="value" th:text="${openOrders}">0</div>
         </section>
         <section class="card stat">
-            <div class="label">Repairs completed</div>
+            <div class="label" th:text="#{home.stat.completed}">Repairs completed</div>
             <div class="value" th:text="${completedOrders}">0</div>
         </section>
         <section class="card stat">
-            <div class="label">Mechanics available</div>
+            <div class="label" th:text="#{home.stat.mechanics}">Mechanics available</div>
             <div class="value" th:text="${availableMechanics}">0</div>
         </section>
     </div>
 
     <div class="grid" style="margin-top: 20px;">
         <section class="card">
-            <h2>Book a service</h2>
-            <p class="hint">Describe the fault, pick your car, and we schedule it with a mechanic
-                whose specialty matches the job.</p>
+            <h2 th:text="#{home.card.book.title}">Book a service</h2>
+            <p class="hint" th:text="#{home.card.book.text}">Book a service</p>
         </section>
         <section class="card">
-            <h2>Follow the repair</h2>
-            <p class="hint">Every repair order lists its service tasks and the labour hours behind
-                them, so the final invoice never surprises you.</p>
+            <h2 th:text="#{home.card.follow.title}">Follow the repair</h2>
+            <p class="hint" th:text="#{home.card.follow.text}">Follow the repair</p>
         </section>
         <section class="card">
-            <h2>Genuine parts</h2>
-            <p class="hint">Parts are reserved from our warehouse the moment a job is approved and
-                only charged once they are actually fitted.</p>
+            <h2 th:text="#{home.card.parts.title}">Genuine parts</h2>
+            <p class="hint" th:text="#{home.card.parts.text}">Genuine parts</p>
         </section>
     </div>
 
     <div class="card" sec:authorize="hasAuthority('ORDER_BOOK')" style="margin-top: 20px;">
-        <h2>Ready when you are</h2>
-        <p class="hint">Register your car once, then book it in whenever something needs attention.</p>
+        <h2 th:text="#{home.cta.customer.title}">Ready when you are</h2>
+        <p class="hint" th:text="#{home.cta.customer.text}">Register your car once.</p>
         <div class="actions">
-            <a class="btn" th:href="@{/orders/new}">Book a service</a>
-            <a class="btn btn-ghost" th:href="@{/vehicles}">My vehicles</a>
+            <a class="btn" th:href="@{/orders/new}" th:text="#{home.cta.customer.book}">Book a service</a>
+            <a class="btn btn-ghost" th:href="@{/vehicles}" th:text="#{home.cta.customer.vehicles}">My vehicles</a>
         </div>
     </div>
 
     <div class="card" sec:authorize="hasAnyRole('MECHANIC','ADMIN')" style="margin-top: 20px;">
-        <h2>Workshop floor</h2>
-        <p class="hint">Assign mechanics, log service tasks and close jobs from the workshop board.</p>
+        <h2 th:text="#{home.cta.staff.title}">Workshop floor</h2>
+        <p class="hint" th:text="#{home.cta.staff.text}">Assign mechanics.</p>
         <div class="actions">
-            <a class="btn" th:href="@{/workshop}">Open the board</a>
+            <a class="btn" th:href="@{/workshop}" th:text="#{home.cta.staff.open}">Open the board</a>
         </div>
     </div>
 
     <div class="card" sec:authorize="isAnonymous()" style="margin-top: 20px;">
-        <h2>New here?</h2>
-        <p class="hint">Create an account to register your vehicles and request your first service.</p>
+        <h2 th:text="#{home.cta.guest.title}">New here?</h2>
+        <p class="hint" th:text="#{home.cta.guest.text}">Create an account.</p>
         <div class="actions">
-            <a class="btn" th:href="@{/register}">Create an account</a>
-            <a class="btn btn-ghost" th:href="@{/login}">I already have one</a>
+            <a class="btn" th:href="@{/register}" th:text="#{home.cta.guest.register}">Create an account</a>
+            <a class="btn btn-ghost" th:href="@{/login}" th:text="#{home.cta.guest.login}">I already have one</a>
         </div>
     </div>
 </main>

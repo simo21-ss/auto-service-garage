@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Register')}"></head>
+<head th:replace="~{fragments/layout :: head(#{auth.register.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 
 <main class="container">
     <section class="card card-narrow">
-        <h1>Create an account</h1>
-        <p class="hint">New accounts start as customers. Staff roles are granted by an administrator.</p>
+        <h1 th:text="#{auth.register.heading}">Create an account</h1>
+        <p class="hint" th:text="#{auth.register.subheading}">New accounts start as customers.</p>
 
         <form th:action="@{/register}" th:object="${registerRequest}" method="post">
             <div class="alert alert-error" th:if="${#fields.hasGlobalErrors()}">
@@ -15,42 +15,42 @@
             </div>
 
             <div class="field">
-                <label for="username">Username</label>
+                <label for="username" th:text="#{auth.login.username}">Username</label>
                 <input type="text" id="username" th:field="*{username}"
                        th:classappend="${#fields.hasErrors('username')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('username')}"
                       th:errors="*{username}">error</span>
             </div>
             <div class="field">
-                <label for="email">Email</label>
+                <label for="email" th:text="#{auth.register.email}">Email</label>
                 <input type="email" id="email" th:field="*{email}"
                        th:classappend="${#fields.hasErrors('email')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('email')}"
                       th:errors="*{email}">error</span>
             </div>
             <div class="field">
-                <label for="firstName">First name</label>
+                <label for="firstName" th:text="#{auth.register.firstName}">First name</label>
                 <input type="text" id="firstName" th:field="*{firstName}"
                        th:classappend="${#fields.hasErrors('firstName')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('firstName')}"
                       th:errors="*{firstName}">error</span>
             </div>
             <div class="field">
-                <label for="lastName">Last name</label>
+                <label for="lastName" th:text="#{auth.register.lastName}">Last name</label>
                 <input type="text" id="lastName" th:field="*{lastName}"
                        th:classappend="${#fields.hasErrors('lastName')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('lastName')}"
                       th:errors="*{lastName}">error</span>
             </div>
             <div class="field">
-                <label for="phone">Phone <span class="hint">(optional)</span></label>
+                <label for="phone"><span th:text="#{auth.register.phone}">Phone</span> <span class="hint" th:text="#{auth.register.phone.optional}">(optional)</span></label>
                 <input type="text" id="phone" th:field="*{phone}"
                        th:classappend="${#fields.hasErrors('phone')} ? 'invalid'">
                 <span class="error" th:if="${#fields.hasErrors('phone')}"
                       th:errors="*{phone}">error</span>
             </div>
             <div class="field">
-                <label for="password">Password</label>
+                <label for="password" th:text="#{auth.login.password}">Password</label>
                 <input type="password" id="password" th:field="*{password}"
                        autocomplete="new-password"
                        th:classappend="${#fields.hasErrors('password')} ? 'invalid'">
@@ -58,7 +58,7 @@
                       th:errors="*{password}">error</span>
             </div>
             <div class="field">
-                <label for="confirmPassword">Confirm password</label>
+                <label for="confirmPassword" th:text="#{auth.register.confirmPassword}">Confirm password</label>
                 <input type="password" id="confirmPassword" th:field="*{confirmPassword}"
                        autocomplete="new-password"
                        th:classappend="${#fields.hasErrors('confirmPassword')} ? 'invalid'">
@@ -66,8 +66,8 @@
                       th:errors="*{confirmPassword}">error</span>
             </div>
             <div class="actions">
-                <button type="submit" class="btn">Register</button>
-                <a class="btn btn-ghost" th:href="@{/login}">I already have an account</a>
+                <button type="submit" class="btn" th:text="#{auth.register.submit}">Register</button>
+                <a class="btn btn-ghost" th:href="@{/login}" th:text="#{auth.register.haveAccount}">I already have an account</a>
             </div>
         </form>
     </section>

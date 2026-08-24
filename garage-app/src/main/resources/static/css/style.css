@@ -548,3 +548,25 @@ tbody tr:last-child td {
         grid-template-columns: 1fr;
     }
 }
+
+.lang {
+    display: inline-flex;
+    gap: 4px;
+    margin-left: 8px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(148, 163, 184, .3);
+}
+
+.lang a {
+    padding: 4px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    color: #94a3b8;
+    border-radius: 6px;
+}
+
+.lang a.on {
+    background: var(--accent);
+    color: var(--ink);
+}

@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Sign in')}"></head>
+<head th:replace="~{fragments/layout :: head(#{auth.login.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 
 <main class="container">
     <section class="card card-narrow">
-        <h1>Sign in</h1>
-        <p class="hint">Use your Pistonworks account to manage your vehicles and repairs.</p>
+        <h1 th:text="#{auth.login.heading}">Sign in</h1>
+        <p class="hint" th:text="#{auth.login.subheading}">Use your account.</p>
 
         <div th:replace="~{fragments/layout :: alerts}"></div>
         <div class="alert alert-error" th:if="${param.error}">
-            Wrong username or password, or the account has been deactivated.
+            <span th:text="#{auth.login.failed}">Wrong username or password.</span>
         </div>
         <div class="alert alert-success" th:if="${param.logout}">
-            You have been signed out.
+            <span th:text="#{auth.login.loggedOut}">You have been signed out.</span>
         </div>
 
         <form th:action="@{/login}" method="post">
             <div class="field">
-                <label for="username">Username</label>
+                <label for="username" th:text="#{auth.login.username}">Username</label>
                 <input type="text" id="username" name="username" autocomplete="username" required>
             </div>
             <div class="field">
-                <label for="password">Password</label>
+                <label for="password" th:text="#{auth.login.password}">Password</label>
                 <input type="password" id="password" name="password"
                        autocomplete="current-password" required>
             </div>
             <div class="actions">
-                <button type="submit" class="btn">Sign in</button>
-                <a class="btn btn-ghost" th:href="@{/register}">Create an account</a>
+                <button type="submit" class="btn" th:text="#{auth.login.submit}">Sign in</button>
+                <a class="btn btn-ghost" th:href="@{/register}" th:text="#{home.cta.guest.register}">Create an account</a>
             </div>
         </form>
     </section>

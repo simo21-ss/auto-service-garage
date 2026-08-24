@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Something went wrong')}"></head>
+<head th:replace="~{fragments/layout :: head(#{error.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 
 <main class="container">
     <section class="card status-page">
         <div class="status-code" th:text="${status} ?: 500">500</div>
-        <h1 th:text="${reason} ?: 'Unexpected error'">Unexpected error</h1>
-        <p class="hint" th:text="${message} ?: 'The request could not be completed.'">
+        <h1 th:text="${reason} ?: #{error.heading}">Unexpected error</h1>
+        <p class="hint" th:text="${message} ?: #{error.text}">
             The request could not be completed.</p>
         <div class="actions" style="justify-content: center;">
-            <a class="btn" th:href="@{/}">Back to home</a>
+            <a class="btn" th:href="@{/}" th:text="#{error.back}">Back to home</a>
         </div>
     </section>
 </main>
