@@ -22,6 +22,7 @@ import java.util.UUID;
 public class PartsCatalogServiceImpl implements PartsCatalogService {
 
     private static final String RESERVED_STATUS = "RESERVED";
+    private static final String CONSUMED_STATUS = "CONSUMED";
 
     private final PartsClient partsClient;
 
@@ -30,7 +31,7 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
-    @Cacheable(CacheConfig.PARTS_CATALOGUE)
+    @Cacheable(value = CacheConfig.PARTS_CATALOGUE, unless = "#result.isEmpty()")
     public List<PartView> catalogue() {
         try {
             return partsClient.catalogue().parts();
@@ -41,7 +42,7 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     }
 
     @Override
-    @Cacheable(CacheConfig.LOW_STOCK_PARTS)
+    @Cacheable(value = CacheConfig.LOW_STOCK_PARTS, unless = "#result.isEmpty()")
     public List<PartView> lowStock() {
         try {
             return partsClient.lowStock().parts();
@@ -95,13 +96,14 @@ public class PartsCatalogServiceImpl implements PartsCatalogService {
     public BigDecimal consumeAllFor(UUID repairOrderId) {
         try {
             List<ReservationView> reserved = openReservations(repairOrderId);
+            reserved.forEach(reservation -> partsClient.consume(reservation.id()));
 
-            BigDecimal total = reserved.stream()
-                    .map(reservation -> partsClient.consume(reservation.id()))
+            BigDecimal total = partsClient.reservationsFor(repairOrderId).reservations().stream()
+                    .filter(reservation -> CONSUMED_STATUS.equals(reservation.status()))
                     .map(ReservationView::lineTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            log.info("Consumed {} reservation(s) worth {} for repair order {}",
+            log.info("Consumed {} reservation(s), total parts value {} for repair order {}",
                     reserved.size(), total, repairOrderId);
             return total;
         } catch (FeignException exception) {

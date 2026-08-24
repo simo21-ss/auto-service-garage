@@ -56,6 +56,22 @@ class PartsCatalogServiceImplTest {
     }
 
     @Test
+    void anEmptyCatalogueIsNeverCachedSoAnOutageDoesNotPersist() throws Exception {
+        var method = PartsCatalogServiceImpl.class.getMethod("catalogue");
+        var cacheable = method.getAnnotation(org.springframework.cache.annotation.Cacheable.class);
+
+        assertThat(cacheable.unless()).isEqualTo("#result.isEmpty()");
+    }
+
+    @Test
+    void anEmptyLowStockReportIsNeverCachedEither() throws Exception {
+        var method = PartsCatalogServiceImpl.class.getMethod("lowStock");
+        var cacheable = method.getAnnotation(org.springframework.cache.annotation.Cacheable.class);
+
+        assertThat(cacheable.unless()).isEqualTo("#result.isEmpty()");
+    }
+
+    @Test
     void anUnreachableServiceDegradesToAnEmptyLowStockReport() {
         when(partsClient.lowStock()).thenThrow(unavailable());
 
@@ -88,19 +104,38 @@ class PartsCatalogServiceImplTest {
     }
 
     @Test
-    void consumeAllSumsTheLineTotalsOfOpenReservations() {
+    void consumeAllBillsEveryReservationTheOrderHasConsumed() {
         UUID orderId = UUID.randomUUID();
         ReservationView open = reservation("BRK-1", 2, "RESERVED");
         ReservationView alreadyDone = reservation("BRK-2", 1, "CONSUMED");
+
         when(partsClient.reservationsFor(orderId))
                 .thenReturn(new ReservationCollection(
-                        new ReservationCollection.Embedded(List.of(open, alreadyDone))));
+                        new ReservationCollection.Embedded(List.of(open, alreadyDone))))
+                .thenReturn(new ReservationCollection(
+                        new ReservationCollection.Embedded(List.of(
+                                reservation("BRK-1", 2, "CONSUMED"), alreadyDone))));
         when(partsClient.consume(open.id())).thenReturn(reservation("BRK-1", 2, "CONSUMED"));
 
         BigDecimal total = partsCatalogService.consumeAllFor(orderId);
 
-        assertThat(total).isEqualByComparingTo("100.00");
+        assertThat(total).isEqualByComparingTo("150.00");
         verify(partsClient, times(1)).consume(any(UUID.class));
+    }
+
+    @Test
+    void aRepeatedCompletionStillBillsThePartsAlreadyConsumed() {
+        UUID orderId = UUID.randomUUID();
+        ReservationView consumed = reservation("BRK-1", 2, "CONSUMED");
+
+        when(partsClient.reservationsFor(orderId))
+                .thenReturn(new ReservationCollection(
+                        new ReservationCollection.Embedded(List.of(consumed))));
+
+        BigDecimal total = partsCatalogService.consumeAllFor(orderId);
+
+        assertThat(total).isEqualByComparingTo("100.00");
+        verify(partsClient, never()).consume(any(UUID.class));
     }
 
     @Test
