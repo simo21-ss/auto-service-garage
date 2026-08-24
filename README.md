@@ -23,6 +23,7 @@ database and its own port:
 - **Redis** via Spring Cache abstraction
 - **Spring AOP** for cross-cutting monitoring
 - **JJWT** for signed service-to-service tokens
+- **OpenPDF** and **Apache POI** for document exports
 - **Lombok**, **Bean Validation**
 - **JUnit 5**, **Mockito**, **Spring Security Test**, **H2**, **JaCoCo**
 - **Docker Compose** for the whole stack
@@ -87,6 +88,9 @@ restock a part
 **Administration** — manage mechanics · change a user's role · suspend or reactivate
 an account · review the audit trail
 
+**Documents** — download a completed repair order as a PDF invoice · export the parts
+inventory as an Excel workbook
+
 ### Business rules worth knowing
 
 - A vehicle may only have one open repair order at a time, and a retired vehicle cannot be booked in.
@@ -123,6 +127,20 @@ Seeded automatically on first start.
 | `admin` | `admin123` | ADMIN |
 | `mechanic` | `mechanic123` | MECHANIC |
 | `customer` | `customer123` | CUSTOMER |
+
+## Localisation
+
+The interface ships in **English and Bulgarian**. The language is switched with the `EN`/`BG`
+control in the header (`?lang=en` / `?lang=bg`) and remembered in a cookie, so it survives
+navigation and sign-in. Translations live in `src/main/resources/i18n/`.
+
+## Documents
+
+A completed repair order can be downloaded as a **PDF invoice** listing the labour lines, the
+parts actually fitted, and the totals — visible to the customer who owns the order and to
+workshop staff. Administrators can export the whole parts catalogue as an **Excel workbook**,
+with anything below its reorder level highlighted; that endpoint requires the `REPORT_EXPORT`
+permission.
 
 ## Web pages
 
