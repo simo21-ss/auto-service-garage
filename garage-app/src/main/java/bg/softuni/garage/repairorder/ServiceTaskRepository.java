@@ -10,6 +10,4 @@ public interface ServiceTaskRepository extends JpaRepository<ServiceTask, UUID> 
     List<ServiceTask> findAllByRepairOrderOrderByCreatedAtAsc(RepairOrder repairOrder);
 
     long countByRepairOrderAndStatus(RepairOrder repairOrder, ServiceTaskStatus status);
-
-    void deleteAllByRepairOrder(RepairOrder repairOrder);
 }
