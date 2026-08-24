@@ -41,7 +41,7 @@ public class AdminInventoryController {
     }
 
     @GetMapping("/export")
-    @PreAuthorize("hasAuthority('REPORT_EXPORT')")
+    @PreAuthorize("hasAuthority('PART_RESTOCK') and hasAuthority('REPORT_EXPORT')")
     public ResponseEntity<byte[]> export() {
         byte[] workbook = inventoryReportService.renderInventoryWorkbook(partsCatalogService.catalogue());
 

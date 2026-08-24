@@ -42,8 +42,8 @@ public class CacheConfig {
     public RedisCacheManagerBuilderCustomizer cacheTtlCustomizer(
             RedisCacheConfiguration defaultCacheConfiguration) {
         return builder -> builder.withInitialCacheConfigurations(Map.of(
-                PARTS_CATALOGUE, defaultCacheConfiguration.entryTtl(Duration.ofSeconds(60)),
-                LOW_STOCK_PARTS, defaultCacheConfiguration.entryTtl(Duration.ofSeconds(60)),
+                PARTS_CATALOGUE, defaultCacheConfiguration.entryTtl(Duration.ofSeconds(15)),
+                LOW_STOCK_PARTS, defaultCacheConfiguration.entryTtl(Duration.ofSeconds(15)),
                 ACTIVE_MECHANICS, defaultCacheConfiguration.entryTtl(Duration.ofMinutes(15))));
     }
 }
