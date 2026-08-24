@@ -297,7 +297,7 @@ class RepairOrderServiceImplTest {
         User owner = TestFixtures.user("ivan", RoleName.CUSTOMER);
         when(userService.getById(owner.getId())).thenReturn(owner);
         when(repairOrderRepository.findAllByVehicleOwnerOrderByCreatedAtDesc(owner)).thenReturn(List.of());
-        when(repairOrderRepository.findAllByStatusInOrderByCreatedAtAsc(anyList())).thenReturn(List.of());
+        when(repairOrderRepository.findOpenWithOwners(anyCollection())).thenReturn(List.of());
         when(repairOrderRepository.findAllByStatusOrderByCreatedAtDesc(RepairOrderStatus.COMPLETED))
                 .thenReturn(List.of());
         when(repairOrderRepository.countByStatus(RepairOrderStatus.REQUESTED)).thenReturn(2L);

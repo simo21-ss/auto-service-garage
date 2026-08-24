@@ -16,7 +16,9 @@ public interface RepairOrderRepository extends JpaRepository<RepairOrder, UUID> 
 
     List<RepairOrder> findAllByVehicleOwnerOrderByCreatedAtDesc(User owner);
 
-    List<RepairOrder> findAllByStatusInOrderByCreatedAtAsc(List<RepairOrderStatus> statuses);
+    @Query("select o from RepairOrder o join fetch o.vehicle vehicle join fetch vehicle.owner "
+            + "where o.status in :statuses order by o.createdAt asc")
+    List<RepairOrder> findOpenWithOwners(@Param("statuses") Collection<RepairOrderStatus> statuses);
 
     List<RepairOrder> findAllByStatusOrderByCreatedAtDesc(RepairOrderStatus status);
 

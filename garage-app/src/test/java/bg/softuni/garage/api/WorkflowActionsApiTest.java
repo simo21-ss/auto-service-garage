@@ -47,6 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -140,6 +141,19 @@ class WorkflowActionsApiTest {
         mockMvc.perform(delete("/admin/mechanics/{id}", created.getId()).with(user(staff)).with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/mechanics"));
+    }
+
+    @Test
+    void theWorkshopBoardRendersTheCustomerNameOnAnOpenOrder() throws Exception {
+        User customer = registerCustomer();
+        Vehicle vehicle = vehicleService.register(vehicleRequest(), customer.getId());
+        repairOrderService.book(bookingRequest(vehicle.getId()), customer.getId());
+
+        mockMvc.perform(get("/workshop").with(user(staff)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("workshop/board"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        customer.getFirstName() + " " + customer.getLastName())));
     }
 
     @Test

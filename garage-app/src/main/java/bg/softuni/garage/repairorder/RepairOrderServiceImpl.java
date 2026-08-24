@@ -63,8 +63,7 @@ public class RepairOrderServiceImpl implements RepairOrderService {
     @Override
     @Transactional(readOnly = true)
     public List<RepairOrder> findOpenOrders() {
-        return repairOrderRepository.findAllByStatusInOrderByCreatedAtAsc(
-                RepairOrderStatus.openStatuses());
+        return repairOrderRepository.findOpenWithOwners(RepairOrderStatus.openStatuses());
     }
 
     @Override
