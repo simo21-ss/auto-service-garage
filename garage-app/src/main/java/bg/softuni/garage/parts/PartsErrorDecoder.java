@@ -24,7 +24,8 @@ public class PartsErrorDecoder implements ErrorDecoder {
     @Override
     public Exception decode(String methodKey, Response response) {
         HttpStatus status = HttpStatus.resolve(response.status());
-        String detail = readDetail(response);
+        byte[] body = readBody(response);
+        String detail = extractDetail(body);
 
         log.warn("Parts service returned {} for {}: {}", response.status(), methodKey, detail);
 
@@ -37,20 +38,31 @@ public class PartsErrorDecoder implements ErrorDecoder {
         if (status == HttpStatus.FORBIDDEN || status == HttpStatus.UNAUTHORIZED) {
             return new BusinessRuleException("The workshop is not authorised to change parts stock");
         }
-        return defaultDecoder.decode(methodKey, response);
+        return defaultDecoder.decode(methodKey, response.toBuilder().body(body).build());
     }
 
-    private String readDetail(Response response) {
+    private byte[] readBody(Response response) {
         if (response.body() == null) {
-            return FALLBACK_MESSAGE;
+            return new byte[0];
         }
 
         try (InputStream body = response.body().asInputStream()) {
-            JsonNode root = objectMapper.readTree(body.readAllBytes());
-            JsonNode detail = root.get(DETAIL_FIELD);
-            return detail == null || detail.asText().isBlank() ? FALLBACK_MESSAGE : detail.asText();
+            return body.readAllBytes();
         } catch (IOException exception) {
             log.warn("Could not read the parts service error body: {}", exception.getMessage());
+            return new byte[0];
+        }
+    }
+
+    private String extractDetail(byte[] body) {
+        if (body.length == 0) {
+            return FALLBACK_MESSAGE;
+        }
+
+        try {
+            JsonNode detail = objectMapper.readTree(body).get(DETAIL_FIELD);
+            return detail == null || detail.asText().isBlank() ? FALLBACK_MESSAGE : detail.asText();
+        } catch (IOException exception) {
             return FALLBACK_MESSAGE;
         }
     }
