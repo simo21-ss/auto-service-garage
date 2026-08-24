@@ -200,6 +200,30 @@ Both applications run a cron job and a non-cron job.
 | `parts-svc` | cron `0 0 2 * * *` | automatically reorder depleted parts |
 | `parts-svc` | fixed rate | expire reservations that were never consumed |
 
+Every schedule is a configuration property, so the jobs can be made to run on a short interval
+without touching the code. That is useful when you want to watch one actually fire rather than
+wait for its usual time:
+
+```bash
+# garage-app: overdue sweep every 15 seconds, low stock check 5s after start then every 20s
+GARAGE_JOBS_OVERDUE_SWEEP_CRON="*/15 * * * * *" \
+GARAGE_JOBS_LOW_STOCK_INITIAL_DELAY_MS=5000 \
+GARAGE_JOBS_LOW_STOCK_INTERVAL_MS=20000 \
+./mvnw spring-boot:run
+```
+
+```bash
+# parts-svc: auto reorder every 20 seconds, reservation sweep 5s after start then every 15s
+PARTS_JOBS_AUTO_REORDER_CRON="*/20 * * * * *" \
+PARTS_JOBS_EXPIRY_INITIAL_DELAY_MS=5000 \
+PARTS_JOBS_EXPIRY_INTERVAL_MS=15000 \
+PARTS_JOBS_RESERVATION_TTL_HOURS=0 \
+./mvnw spring-boot:run
+```
+
+Each run logs what it found, for example `Low stock check found 1 part(s) below reorder level:
+[ELE-ALT-120]`, and the two garage jobs also write to the audit trail visible at `/admin/audit`.
+
 Caching is Redis-backed with per-cache TTLs: the parts catalogue and low-stock report in both
 applications, and the active mechanic roster in the main application. Every operation that
 changes stock or the roster evicts the affected caches.
