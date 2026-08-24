@@ -27,7 +27,8 @@ import java.util.UUID;
 @Slf4j
 public class RepairOrderServiceImpl implements RepairOrderService {
 
-    private static final String REFERENCE_FORMAT = "RO-%d-%04d";
+    private static final String REFERENCE_FORMAT = "RO-%d-%s";
+    private static final int REFERENCE_SUFFIX_LENGTH = 8;
 
     private final RepairOrderRepository repairOrderRepository;
     private final ServiceTaskRepository serviceTaskRepository;
@@ -230,9 +231,11 @@ public class RepairOrderServiceImpl implements RepairOrderService {
     }
 
     private String nextReference() {
-        int year = Year.now().getValue();
-        String prefix = "RO-" + year + "-";
-        long sequence = repairOrderRepository.countByReferencePrefix(prefix) + 1;
-        return REFERENCE_FORMAT.formatted(year, sequence);
+        String suffix = UUID.randomUUID().toString()
+                .replace("-", "")
+                .substring(0, REFERENCE_SUFFIX_LENGTH)
+                .toUpperCase();
+
+        return REFERENCE_FORMAT.formatted(Year.now().getValue(), suffix);
     }
 }

@@ -71,14 +71,13 @@ class RepairOrderServiceImplTest {
         when(vehicleService.getOwnedById(vehicle.getId(), owner.getId())).thenReturn(vehicle);
         when(repairOrderRepository.existsByVehicleAndStatusIn(any(Vehicle.class), anyCollection()))
                 .thenReturn(false);
-        when(repairOrderRepository.countByReferencePrefix(any())).thenReturn(4L);
         when(repairOrderRepository.save(any(RepairOrder.class))).thenAnswer(call -> call.getArgument(0));
 
         RepairOrder booked = repairOrderService.book(
                 bookingRequest(vehicle.getId(), Specialty.SUSPENSION), owner.getId());
 
         assertThat(booked.getStatus()).isEqualTo(RepairOrderStatus.REQUESTED);
-        assertThat(booked.getReference()).endsWith("-0005");
+        assertThat(booked.getReference()).matches("RO-\\d{4}-[0-9A-F]{8}");
         assertThat(booked.getLabourCost()).isEqualByComparingTo("0.00");
         assertThat(booked.getPartsCost()).isEqualByComparingTo("0.00");
     }

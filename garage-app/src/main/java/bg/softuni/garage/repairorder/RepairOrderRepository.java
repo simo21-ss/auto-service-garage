@@ -37,7 +37,4 @@ public interface RepairOrderRepository extends JpaRepository<RepairOrder, UUID> 
     @Query("select o from RepairOrder o where o.status = :status and o.scheduledAt < :cutoff")
     List<RepairOrder> findOverdue(@Param("status") RepairOrderStatus status,
                                   @Param("cutoff") LocalDateTime cutoff);
-
-    @Query("select count(o) from RepairOrder o where o.reference like concat(:prefix, '%')")
-    long countByReferencePrefix(@Param("prefix") String prefix);
 }
