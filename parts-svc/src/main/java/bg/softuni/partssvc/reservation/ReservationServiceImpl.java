@@ -11,6 +11,8 @@ import bg.softuni.partssvc.part.Part;
 import bg.softuni.partssvc.part.PartRepository;
 import bg.softuni.partssvc.reservation.dto.ReservationRequest;
 import bg.softuni.partssvc.reservation.dto.ReservationResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -33,15 +35,18 @@ public class ReservationServiceImpl implements ReservationService {
     private final PartRepository partRepository;
     private final StockLedgerService stockLedgerService;
     private final ApplicationEventPublisher eventPublisher;
+    private final EntityManager entityManager;
 
     public ReservationServiceImpl(PartReservationRepository reservationRepository,
                                   PartRepository partRepository,
                                   StockLedgerService stockLedgerService,
-                                  ApplicationEventPublisher eventPublisher) {
+                                  ApplicationEventPublisher eventPublisher,
+                                  EntityManager entityManager) {
         this.reservationRepository = reservationRepository;
         this.partRepository = partRepository;
         this.stockLedgerService = stockLedgerService;
         this.eventPublisher = eventPublisher;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -86,7 +91,7 @@ public class ReservationServiceImpl implements ReservationService {
     })
     public ReservationResponse consume(UUID reservationId, String actor) {
         PartReservation reservation = requireReserved(reservationId, "consumed");
-        Part part = reservation.getPart();
+        Part part = lockForUpdate(reservation.getPart());
 
         int onHandBefore = part.getQuantityOnHand();
         part.setQuantityOnHand(onHandBefore - reservation.getQuantity());
@@ -164,13 +169,18 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private PartReservation returnToStock(PartReservation reservation, ReservationStatus status) {
-        Part part = reservation.getPart();
+        Part part = lockForUpdate(reservation.getPart());
         part.setQuantityReserved(part.getQuantityReserved() - reservation.getQuantity());
         partRepository.save(part);
 
         reservation.setStatus(status);
         reservation.setResolvedAt(LocalDateTime.now());
         return reservationRepository.save(reservation);
+    }
+
+    private Part lockForUpdate(Part part) {
+        entityManager.refresh(part, LockModeType.PESSIMISTIC_WRITE);
+        return part;
     }
 
     private PartReservation requireReserved(UUID reservationId, String action) {

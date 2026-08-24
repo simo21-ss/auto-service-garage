@@ -10,6 +10,8 @@ import bg.softuni.partssvc.part.Part;
 import bg.softuni.partssvc.part.PartRepository;
 import bg.softuni.partssvc.reservation.dto.ReservationRequest;
 import bg.softuni.partssvc.reservation.dto.ReservationResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +48,9 @@ class ReservationServiceImplTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;
@@ -165,6 +170,48 @@ class ReservationServiceImplTest {
 
         assertThatThrownBy(() -> reservationService.release(reservation.getId(), "mechanic"))
                 .isInstanceOf(ReservationStateException.class);
+    }
+
+    @Test
+    void consumingTakesAWriteLockOnThePartBeforeAdjustingStock() {
+        Part part = TestFixtures.part("BRK-1", 20, 5, 2);
+        PartReservation reservation = TestFixtures.reservation(part, 5, ReservationStatus.RESERVED);
+        when(reservationRepository.findById(reservation.getId())).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(PartReservation.class)))
+                .thenAnswer(call -> call.getArgument(0));
+
+        reservationService.consume(reservation.getId(), "mechanic");
+
+        verify(entityManager).refresh(part, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    @Test
+    void releasingTakesAWriteLockOnThePartBeforeReturningStock() {
+        Part part = TestFixtures.part("BRK-1", 20, 5, 2);
+        PartReservation reservation = TestFixtures.reservation(part, 5, ReservationStatus.RESERVED);
+        when(reservationRepository.findById(reservation.getId())).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(PartReservation.class)))
+                .thenAnswer(call -> call.getArgument(0));
+
+        reservationService.release(reservation.getId(), "mechanic");
+
+        verify(entityManager).refresh(part, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    @Test
+    void theExpirySweepAlsoLocksEveryPartItReturnsToStock() {
+        Part part = TestFixtures.part("BRK-1", 20, 4, 2);
+        PartReservation stale = TestFixtures.reservation(part, 4, ReservationStatus.RESERVED);
+        stale.setCreatedAt(LocalDateTime.now().minusDays(5));
+        when(reservationRepository.findAllByStatusAndCreatedAtBefore(
+                org.mockito.ArgumentMatchers.eq(ReservationStatus.RESERVED), any(LocalDateTime.class)))
+                .thenReturn(List.of(stale));
+        when(reservationRepository.save(any(PartReservation.class)))
+                .thenAnswer(call -> call.getArgument(0));
+
+        reservationService.expireStaleReservations(Duration.ofHours(48), "expiry");
+
+        verify(entityManager).refresh(part, LockModeType.PESSIMISTIC_WRITE);
     }
 
     @Test
