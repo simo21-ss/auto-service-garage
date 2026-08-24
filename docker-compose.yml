@@ -74,7 +74,7 @@ services:
       SERVER_PORT: 8081
       PARTS_DB_HOST: parts-db
       PARTS_DB_PORT: 5432
-      MONGO_URI: mongodb://ledger-db:27017/partsledger
+      MONGO_URI: mongodb://ledger-db:27017/partsledger?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=4000
       REDIS_HOST: cache
       REDIS_PORT: 6379
     ports:
